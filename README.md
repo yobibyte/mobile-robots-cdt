@@ -91,9 +91,19 @@ addpath('/Users/robweston/code/mexmoos/build')
 ```
 To check that everything has installed correctly, either (1) run your `startup-cdt.m` manually followed by `examples/simple_moos_example.m`. This script should display the following:
 
-
-TODO: Add the path and output message to test mexmoos.
-
+```
+>> simple_moos_example
+closing MOOS Comms... done
+* mexmoos initialising *
+Property MOOSNAME                   Str: ExampleCdtClient9057919
+Property SERVERHOST                 Str: 192.168.0.14
+Property SERVERPORT                 Str: 9000
+DB connection established
+Sending message over MOOS with unique number: 9057919
+Reading message from MOOS
+Received Message:  "Hello, MOOS world (9057919)"
+closing MOOS Comms... done
+```
 
 Or (2) close and re-open MATLAB and type into the prompt: `mexmoos`. If everything is correctly installed, this should print out some mexmoos usage instructions.
 
