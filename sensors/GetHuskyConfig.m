@@ -35,7 +35,7 @@ switch husky_id
         model_struct = load('full-size/BB2-14366971.mat'); % Load camera model % checked
 %         husky_config.laser_channel = 'LMS1xx_11360134_laser2d';
     case 2
-        model_struct = load('full-size/BB2-13161009.mat'); % Load camera model % checked
+        model_struct = load('half-size/BB2-13161009.mat'); % Load camera model % checked
 %         husky_config.laser_channel = 'LMS1xx_14280167_laser2d'; % checked
     case 3
         model_struct = load('full-size/BB2-11441506.mat'); % Load camera model % checked
