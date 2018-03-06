@@ -4,7 +4,7 @@
 
 This repo hosts all of the code for the CDT husky challenge. It is composed of the following repositories:
 
-* `SLAM`: This repository contains a basic implementation of SLAM
+* `SLAM`: This repository contains a basic implementation of SLAM. The example scripts `example/EKFLocalisation_example.m` and `example/EKFMapping_example.m`
 * `sensors`: Provides various helper functions for reading in and visualising data
 received from the huskies into MATLAB. For more information see `examples/sensor_example.m`
 * `control`: Provides functions for controlling the husky using MATLAB. For more information see
@@ -91,19 +91,9 @@ addpath('/Users/robweston/code/mexmoos/build')
 ```
 To check that everything has installed correctly, either (1) run your `startup-cdt.m` manually followed by `examples/simple_moos_example.m`. This script should display the following:
 
-```
->> simple_moos_example
-closing MOOS Comms... done
-* mexmoos initialising *
-Property MOOSNAME                   Str: ExampleCdtClient9057919
-Property SERVERHOST                 Str: 192.168.0.14
-Property SERVERPORT                 Str: 9000
-DB connection established
-Sending message over MOOS with unique number: 9057919
-Reading message from MOOS
-Received Message:  "Hello, MOOS world (9057919)"
-closing MOOS Comms... done
-```
+
+TODO: Add the path and output message to test mexmoos.
+
 
 Or (2) close and re-open MATLAB and type into the prompt: `mexmoos`. If everything is correctly installed, this should print out some mexmoos usage instructions.
 
@@ -164,8 +154,9 @@ Note, the huskies will only move when they are connected to battery power and no
 
 #### With Matlab
 The function `SendSpeedCommand` allows you to control the husky via MATLAB. In order
-to use this function you will first need to launch autonomy mode on the huskies. To do this press 'Y' and then 'A'.
-See the script `move_robot_example.m`
+to use this function you will first need to launch autonomy mode on the huskies. To do this press 'Y' and then 'A' whilst holding down the deaman trigger. 
+The robot is now in autonmous **whilst the deadman trigger is pressed**. Now
+run the script `example/move_robot_example.m`.
 
 ### Turning the Huskies Off
 To shutdown the huskies click stop all taks and then run the task `general -> shutdown`. Now press the power button on the huskie!
