@@ -11,7 +11,7 @@ function [z] = SLAMDataAssociations(x, z_raw)
   %%
   
   if size(x,1) < 4
-    z = [z_raw, zeros(size(z_raw,1))];
+    z = [z_raw, zeros(size(z_raw,1),1)];
     return;
   end
   xVehicle = x(1:3);
