@@ -63,31 +63,20 @@ if ~isempty(moos_mailbox)
     end
     
     for idx = odom_idx
-        
-        % parse s from binary payload
-        pbAuxData = javaMethod('parseFrom',...
-          ['smallrobots.datatypes.protobuf.io.PbAuxData'...
-          '$pbAuxData'],typecast(moos_mailbox(idx).BIN,...
+        pb_serialised_transform = javaMethod('parseFrom',...
+          ['mrg.datatypes.protobuf.transform.PbSerialisedTransform$pbSerialisedTransform'],typecast(moos_mailbox(idx).BIN,...
           'uint8'));
         
-        odometry = struct;
+        [ SE3, source_frame, destination_frame, source_timestamp, XYZRPY, ...
+            se3_euler_covariance, destination_timestamp ] = ...
+            JavaPbSerialisedTransformToMatlab(pb_serialised_transform);
         
         % Get timestamp
-        odometry.timestamp = int64(pbAuxData.getTimestamp);
-        
-        % Assert there are only two parameters (left and right encoder)
-        assert(pbAuxData.getParametersCount == 2);
-        
-        % Check we are decoding in the right order
-        if (pbAuxData.getParameters(0).getName == 'left_encoder')
-          mapping = [0,1];
-        else
-          mapping = [1,0];
-        end
-        
-        % Get encoder values
-        odometry.m_l = pbAuxData.getParameters(mapping(1)).getNumericValue();
-        odometry.m_r = pbAuxData.getParameters(mapping(2)).getNumericValue();
+        odometry.source_timestamp = int64(source_timestamp);
+        odometry.destination_timestamp = int64(destination_timestamp);
+        odometry.x = XYZRPY(1);
+        odometry.y = XYZRPY(2);
+        odometry.yaw = XYZRPY(6);
         
         odom{end+1} = odometry;
     end

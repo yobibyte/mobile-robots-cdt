@@ -21,8 +21,8 @@ function [ ] = SendSpeedCommand( vel, omega, moos_channel )
 % Mobile Robotics Group, Oxford University.
 
 % set constants (replicated in Husky driver)
-MAX_VEL = 0.5;
-MAX_OMEGA = 0.5;
+max_vel = 0.5;
+max_omega = 0.5;
 
 % verify inputs
 if (~(isnumeric(vel) && isscalar(vel) &&~isempty(vel)))
@@ -36,18 +36,18 @@ if (~(ischar(moos_channel) && ~isempty(moos_channel)))
 end
 
 % warn if limits exceeded
-if abs(vel) > MAX_VEL
-    new_vel = min(max(vel, -MAX_VEL), MAX_VEL);
+if abs(vel) > max_vel
+    new_vel = min(max(vel, -max_vel), max_vel);
     warning(['%s - commanded velocity of %0.2f m/s exceeds maximum of '...
         '%0.2f m/s - clamping to %0.2f m/s'], mfilename, vel, ...
-        sign(vel)*MAX_VEL, new_vel);
+        sign(vel)*max_vel, new_vel);
     vel = new_vel;
 end
-if abs(omega) > MAX_OMEGA
-    new_omega = min(max(omega, -MAX_OMEGA), MAX_OMEGA);
+if abs(omega) > max_omega
+    new_omega = min(max(omega, -max_omega), max_omega);
     warning(['%s - commanded angular velocity of %0.2f rad/s exceeds '...
         'maximum of %0.2f rad/s - clamping to %0.2f rad/s'], mfilename, ...
-        omega, sign(omega)*MAX_OMEGA, new_omega);
+        omega, sign(omega)*max_omega, new_omega);
     omega = new_omega;
 end
 
@@ -58,12 +58,11 @@ timestamp = int64(round((now - datenum( 1970,01,01,00,00,00 )) .* ...
 % build speed command message
 command_builder = ...
     javaMethod('newBuilder', ...
-    'smallrobots.datatypes.protobuf.io.PbSE2PlatformDifferentialMotionCommand$pbSE2PlatformDifferentialMotionCommand');
+    'smallrobotsafetystack.datatypes.protobuf.io.PbSE2PlatformDifferentialMotionCommand$pbSE2PlatformDifferentialMotionCommand');
 
-% the signals are percentages of top speed
 command_builder = command_builder.setTimestamp(timestamp);
-command_builder = command_builder.setThrottleSignal(vel / MAX_VEL);
-command_builder = command_builder.setTurnSignal(omega / MAX_OMEGA);
+command_builder = command_builder.setXVelocity(vel);
+command_builder = command_builder.setAngularVelocity(omega);
 
 command = command_builder.build();
 

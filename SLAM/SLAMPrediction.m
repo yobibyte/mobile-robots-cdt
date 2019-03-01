@@ -3,9 +3,8 @@ function [xPred, PPred] = SLAMPrediction(u, x, P)
   % SLAMPrediction
   %
   % INPUTS:
-  % - u: motion estimate of the form [husky_theta, husky_x, husky_y]
-  % - x: state vector of the form
-  % [husky_theta, husky_x, husky_y, pole_0_x, pole_0_y, ..., pole_n_x, pole_n_y]
+  % - u: motion estimate (from odometry or control inputs)
+  % - x: state vector
   % - P: covariance matrix
   %
   % OUTPUTS:

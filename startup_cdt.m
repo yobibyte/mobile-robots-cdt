@@ -5,7 +5,7 @@ javaaddpath([pb_parsers_path '/utils/lib/datatypes_java.jar']);
 javaaddpath([pb_parsers_path '/utils/lib/protobuf-java.jar']);
 
 % --> CHANGE THESE PATHS TO YOUR USER
-addpath('/Users/shcen/code/mex-moos/src')
-addpath('/Users/shcen/code/mex-moos/build')
+addpath('/Users/robweston/code/cdt/mexmoos/src')
+addpath('/Users/robweston/code/cdt/mexmoos/build')
 
 

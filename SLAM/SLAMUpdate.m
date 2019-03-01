@@ -1,10 +1,9 @@
 function [x_new, P_new] = SLAMUpdate(u, z_raw, x, P)
 
 % laser_scan - raw laser scan from GetLaserScans()
-% x - state vector of the form
-% [husky_theta, husky_x, husky_y, pole_0_x, pole_0_y, ..., pole_n_x, pole_n_y]
+% x - state vector
 % P - covariance matrix for 'x'
-% u - relative motion estimate of the form [husky_theta, husky_x, husky_y]
+% u - relative vehicle motion estimate
 
 % TODO: actually, need to run this even if we detect no poles; just run
 % prediction?
@@ -18,3 +17,4 @@ else
 end
 
 end
+

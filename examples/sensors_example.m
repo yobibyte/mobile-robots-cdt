@@ -33,7 +33,7 @@ while true
     wheel_odometry = GetWheelOdometry(mailbox, ...
                                       config.wheel_odometry_channel, ...
                                       true);
-    
+    disp(wheel_odometry)
     %%%%%%%%%%%%%% Do processing here %%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -49,9 +49,6 @@ while true
     subplot(1, 3, 3);
     ShowStereoImage(UndistortStereoImage(stereo_images, ...
                                          config.camera_model));
-    
-    % Display wheel odometry
-    disp(wheel_odometry);
     
     pause(0.1); % don't overload moos w/commands
 end

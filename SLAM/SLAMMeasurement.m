@@ -4,8 +4,7 @@ function [xEst, PEst] = SLAMMeasurement(z, x, P)
   %
   % INPUTS:
   % - z: observations, each in the form [range, bearing, ID]
-  % - x: state vector of the form
-  % [husky_theta, husky_x, husky_y, pole_0_x, pole_0_y, ..., pole_n_x, pole_n_y]
+  % - x: state vector
   % - P: covariance matrix
   %
   % OUTPUTS:
@@ -14,13 +13,13 @@ function [xEst, PEst] = SLAMMeasurement(z, x, P)
 
   REst = 0.25 * diag([1.1, 5 * pi/180.0]).^0.2;
   xEst = x;
-
+  
   for i = 1:size(z,1)
     FeatureIndex = GetFeatureIndex(z(i,3));
     xVehicle = xEst(1:3);
     if FeatureIndex > 3
       xFeature = xEst(FeatureIndex:FeatureIndex+1);
-
+    
       % Transform feature coordinates into range/bearing
       zPred = DoObservation(xVehicle, xFeature);
 
@@ -29,14 +28,14 @@ function [xEst, PEst] = SLAMMeasurement(z, x, P)
       jH = zeros(2, length(xEst));
       jH(:, FeatureIndex:FeatureIndex+1) = jHxf;
       jH(:, 1:3) = jHxv;
-
-      Innov =  z(i,1:2)'-zPred;
+            
+      Innov =  z(i,1:2)'-zPred; 
       Innov(2) = AngleWrap(Innov(2));
 
       S = jH*P*jH'+REst;
       W = P*jH'*inv(S);
       xEst = xEst + W * Innov;
-
+      
       P = P-W*S*W';
 
       P = 0.5 * (P + P');
@@ -57,7 +56,7 @@ function [xEst, PEst] = SLAMMeasurement(z, x, P)
     end
 
   end
-
+  
   PEst = P;
 end
 
