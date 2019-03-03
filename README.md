@@ -46,7 +46,7 @@ Now install Mexmoos as:
 ```bash
 mkdir -p ~/code/cdt/mexmoos/build
 cd ~/code/cdt/mexmoos
-git clone https://github.com/robw4/mexmoos.git .
+git clone https://github.com/robw4/mexmoos.git src
 cd build
 cmake ../src
 make -j
