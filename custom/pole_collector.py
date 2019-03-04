@@ -24,11 +24,13 @@ mexmoos('REGISTER', config.stereo_channel, 0.0);
 mexmoos('REGISTER', config.wheel_odometry_channel, 0.0);
 pause(3); % Give mexmoos a chance to connect (important!)
 
+scans = cell(1, 10)
 % Main loop
-while true
+while s = 1: 10
     % Fetch latest messages from mex-moos
     mailbox = mexmoos('FETCH');
     scan = GetLaserScans(mailbox, config.laser_channel, true);
+    cell{s} = scan;
     stereo_images = GetStereoImages(mailbox, config.stereo_channel, true);
     wheel_odometry = GetWheelOdometry(mailbox, ...
                                       config.wheel_odometry_channel, ...
@@ -52,3 +54,4 @@ while true
 
     pause(0.1); % don't overload moos w/commands
 end
+save(scans);
