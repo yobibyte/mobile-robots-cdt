@@ -25,16 +25,23 @@ mexmoos('REGISTER', config.wheel_odometry_channel, 0.0);
 pause(3); % Give mexmoos a chance to connect (important!)
 
 ITERS = 100;
-scans = cell(ITERS);
+scans = cell(1, ITERS);
+odometries = cell(1, ITERS);
 % Main loop
 for s = 1:ITERS
     % Fetch latest messages from mex-moos
     mailbox = mexmoos('FETCH');
+
     scan = GetLaserScans(mailbox, config.laser_channel, true);
     scans{s} = scan;
+
+    wheel_odometry = GetWheelOdometry(mailbox, ...
+                                      config.wheel_odometry_channel, ...
+                                      true);
+    odometries{s} = wheel_odometry;
 
     pause(0.1); % don't overload moos w/commands
 end
 
 name = datestr(now,'yyyy-mm-dd-HH-MM-SS');
-save(strcat(name, '.mat'), 'scans');
+save(strcat(name, '.mat'), 'scans', 'odometries');
