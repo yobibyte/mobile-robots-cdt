@@ -24,6 +24,9 @@ mexmoos('REGISTER', config.stereo_channel, 0.0);
 mexmoos('REGISTER', config.wheel_odometry_channel, 0.0);
 pause(3); % Give mexmoos a chance to connect (important!)
 
+
+P = eye(1); % initialise covariance matrix somehow
+x = zeros(1, 1); % init the state vector
 % Main loop
 while true
     % Fetch latest messages from mex-moos
@@ -34,5 +37,10 @@ while true
                                       config.wheel_odometry_channel, ...
                                       true);
     
+                                  
     poles = PoldeDetector(scan, 800);
+    [x_new, P] = SLAMUpdate(wheel_odometry, poles, x, P);
+    
 end
+
+
