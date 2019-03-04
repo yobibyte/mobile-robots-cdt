@@ -36,19 +36,19 @@ while true
     disp(wheel_odometry)
     %%%%%%%%%%%%%% Do processing here %%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     % Display laser scan
     subplot(1, 3, 1);
     ShowLaserScan(scan);
-    
+
     % Display stereo image
     subplot(1, 3, 2);
     ShowStereoImage(stereo_images)
-    
+
     % Display undistorted stereo image
     subplot(1, 3, 3);
     ShowStereoImage(UndistortStereoImage(stereo_images, ...
                                          config.camera_model));
-    
+
     pause(0.1); % don't overload moos w/commands
 end

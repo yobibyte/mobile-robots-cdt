@@ -3,7 +3,7 @@
 %   the remote control
 
 % Add MRG helper functions
-addpath('mrg');
+%addpath('mrg');
 
 % Set the Husky ID
 husky_id = 2;
@@ -26,15 +26,14 @@ velocity = 0.3;
 while true
     disp('Send command');
     mailbox = mexmoos('FETCH');
-    
+
     angle = 0.3;
-    
+
     if mod(i, 500) == 0
         velocity = -velocity;
     end
-    
+
     i = i + 1;
     SendSpeedCommand(velocity, angle, husky_config.control_channel);
     pause(0.01); % don't overload moos w/commands
 end
-
