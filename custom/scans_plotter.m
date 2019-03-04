@@ -3,7 +3,7 @@
 % '2019-03-04-15-29-48.mat' in movement
 % '2019-03-04-15-20-35.mat' static
 
-filename = '2019-03-04-15-20-35.mat';
+filename = '2019-03-04-15-29-48.mat';
 scans = load(filename,'scans');
 scans = scans.scans;
 
@@ -13,7 +13,7 @@ for s = 1:ITERS
     % Fetch latest messages from mex-moos
 
     figure(1);
-    ShowLaserScan(scans{s});
+    ShowThresholdedLaserScan(scans{s});
 
     pause(0.1); % don't overload moos w/commands
 end
