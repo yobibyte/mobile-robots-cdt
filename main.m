@@ -43,6 +43,7 @@ while true
 
     current_pose = x_new(1, :); % TODO
     map = x_new(2:end, :); % TODO
+    %TODO: add check on goal detection somewhere
     target_pose = route_planner(map, current_pose); % TODO.
 
     velocity, angle = wheel_controller(current_pose, target_pose);
