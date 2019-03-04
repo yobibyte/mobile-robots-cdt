@@ -24,34 +24,17 @@ mexmoos('REGISTER', config.stereo_channel, 0.0);
 mexmoos('REGISTER', config.wheel_odometry_channel, 0.0);
 pause(3); % Give mexmoos a chance to connect (important!)
 
-scans = cell(1, 10)
+ITERS = 100;
+scans = cell(ITERS);
 % Main loop
-while s = 1: 10
+for s = 1:ITERS
     % Fetch latest messages from mex-moos
     mailbox = mexmoos('FETCH');
     scan = GetLaserScans(mailbox, config.laser_channel, true);
-    cell{s} = scan;
-    stereo_images = GetStereoImages(mailbox, config.stereo_channel, true);
-    wheel_odometry = GetWheelOdometry(mailbox, ...
-                                      config.wheel_odometry_channel, ...
-                                      true);
-    disp(wheel_odometry)
-    %%%%%%%%%%%%%% Do processing here %%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    % Display laser scan
-    subplot(1, 3, 1);
-    ShowLaserScan(scan);
-
-    % Display stereo image
-    subplot(1, 3, 2);
-    ShowStereoImage(stereo_images)
-
-    % Display undistorted stereo image
-    subplot(1, 3, 3);
-    ShowStereoImage(UndistortStereoImage(stereo_images, ...
-                                         config.camera_model));
+    scans{s} = scan;
 
     pause(0.1); % don't overload moos w/commands
 end
-save(scans);
+
+name = datestr(now,'yyyy-mm-dd-HH-MM-SS');
+save(strcat(name, '.mat'), 'scans');
