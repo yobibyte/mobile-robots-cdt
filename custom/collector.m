@@ -27,6 +27,7 @@ pause(3); % Give mexmoos a chance to connect (important!)
 ITERS = 100;
 scans = cell(1, ITERS);
 odometries = cell(1, ITERS);
+images = cell(1, ITERS);
 % Main loop
 for s = 1:ITERS
     % Fetch latest messages from mex-moos
@@ -40,8 +41,11 @@ for s = 1:ITERS
                                       true);
     odometries{s} = wheel_odometry;
 
+    c_images = GetStereoImages(mailbox, config.stereo_channel, true);
+    images{s} = c_images;
+
     pause(0.1); % don't overload moos w/commands
 end
 
 name = datestr(now,'yyyy-mm-dd-HH-MM-SS');
-save(strcat(name, '.mat'), 'scans', 'odometries');
+save(strcat(name, '.mat'), 'scans', 'odometries', 'images');
