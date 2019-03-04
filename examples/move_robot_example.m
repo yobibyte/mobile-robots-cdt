@@ -6,7 +6,7 @@
 addpath('mrg');
 
 % Set the Husky ID
-husky_id = 4;
+husky_id = 2;
 
 % Get the Husky configuration, including the MOOS channel names.
 husky_config = GetHuskyConfig(husky_id);
