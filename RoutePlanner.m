@@ -13,7 +13,6 @@ function target_pose = RoutePlanner(map, current_pose, target)
   
   target_cell = knnsearch(v, [current_pose(1), current_pose(2)]);
   
-  
   cla;
   hold  on;
   
@@ -47,11 +46,6 @@ function target_pose = RoutePlanner(map, current_pose, target)
   start_idx = idx;
   target_idx = knnsearch(v, [target(1) target(2)]);
   
-  %scatter([v(idx, 1)], [v(idx, 2)], 'g+');
-  
-  %f = vx(1,:)]; [vy(1,:)
-  %t = vx(1,:)]; [vy(1,:)
-  
   % compute adjacency
   
   p = PriorityQueue
@@ -66,7 +60,7 @@ function target_pose = RoutePlanner(map, current_pose, target)
       visited(idx) = true;
       disp(idx);
       from = v(idx, :);
-      %plot([prev(1), from(1)], [prev(2), from(2)], 'y-');
+      
       prev = from
       scatter(from(1), from(2));
       
@@ -84,59 +78,7 @@ function target_pose = RoutePlanner(map, current_pose, target)
               cameFrom{adj{idx}(i)} = idx;
           end
       end
-%       
-%       points = []
-%       [row, col] = find(~[(vx(1, :)-from(1)).^2', (vy(1, :)-from(2)).^2'].^.5);
-%       rows = unique(row);
-%       for idx = 1:numel(rows)
-%           points = [points, [vx(2,rows(idx)); vy(2,rows(idx))]];
-%       end
-%       
-%       [row, col] = find(~[(vx(2, :)-from(1)).^2', (vy(2, :)-from(2)).^2'].^.5);
-%       rows = unique(row);
-%       for idx = 1:numel(rows)
-%           points = [points, [vx(1,rows(idx)); vy(1,rows(idx))]];
-%       end
-%       points = points'
-%       for idx = 1:size(points, 1)
-%           point = points(idx, :);
-%           d = 0;%distance([vx(2, i), vy(2, i)], from);
-%           h = pdist([point(1), point(2); target(1), target(2)]);
-%           res = find(abs([point(1), point(2)]-v) < 0.01)
-%           if size(res) ~= 0
-%               if ~isKey(visited, res(1))
-%                   p.push((d+h), res(1));
-%               end
-%           end
-%       end
       
-%       for i=1:size(vx, 2)
-%           
-%           %fprintf("A: %f %f %f %f %f\n", from(1), from(2), vx(1, i), vy(1, i), all(from == [vx(1, i) vy(1, i)]));
-%           if distance(from, [vx(1, i) vy(1, i)]) < 0.01
-%               %scatter(vx(2, i), vy(2, i));
-%               d = 0;%distance([vx(2, i), vy(2, i)], from);
-%               h = pdist([vx(2, i), vy(2, i); target(1), target(2)]);
-%               res = find(abs([vx(2, i), vy(2, i)]-v) < 0.01)
-%               if size(res) ~= 0
-%                   if ~isKey(visited, res(1))
-%                     p.push((d+h), res(1));
-%                   end
-%               end
-%           end
-%           %fprintf("B: %f %f %f %f %f\n", from(1), from(2), vx(2, i), vy(2, i), all(from == [vx(2, i) vy(2, i)] ));          
-%           if distance(from, [vx(2, i) vy(2, i)]) < 0.01
-%               %scatter(vx(1, i), vy(1, i));
-%               d = 0; %distance([vx(1, i), vy(1, i)], from);
-%               h = pdist([vx(1, i), vy(1, i); target(1), target(2)]);
-%               res = find(abs([vx(1, i), vy(1, i)]-v) < 0.01)
-%               if size(res) ~= 0
-%                   if ~isKey(visited, res(1))
-%                     p.push((d+h), res(1));
-%                   end
-%               end
-%           end
-%       end
       if p.size == 0
           break;
       end
@@ -145,9 +87,10 @@ function target_pose = RoutePlanner(map, current_pose, target)
   
   p = target_idx;
   while true      
-      pp = cameFrom{p};
+      pp = cameFrom{p};      
       plot([v(p, 1), v(pp, 1)], [v(p, 2), v(pp, 2)], 'r-');
       if pp == start_idx
+          target_pose = p;
           break
       end
       p = pp;
