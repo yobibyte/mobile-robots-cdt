@@ -13,7 +13,7 @@ function [coordinates] = PoleDetector(scan, threshold)
     coordinates = cell(1, N);
     %ShowLaserScan(scan);
     for i = 1:N
-        if size(T(find(C==i), :), 1) > 3
+        if size(T(find(C==i), :), 1) > 2
             c = mean(T(find(C==i), :));
             %scatter(c(1), c(2));
             [theta, rho] = cart2pol(c(1), c(2));
