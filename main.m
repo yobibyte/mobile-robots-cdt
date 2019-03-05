@@ -31,16 +31,22 @@ odometries = collected_data.odometries;
 images = collected_data.images;
 ITERS = size(scans, 2);
 
-P = eye(1); % initialise covariance matrix
-x = zeros(1, 3); % init the state vector, first three coords are our pose
+P = eye(3); % initialise covariance matrix
+x = zeros(3, 1); % init the state vector, first three coords are our pose
 
 for s = 1:ITERS
     scan = scans{s};
     poles = PoleDetector(scan, 800);
-    wheel_odometry = odometries{s};
-    %[x_new, P] = SLAMUpdate(wheel_odometry, poles, x, P);
-    %current_pose = x_new(1, :); % TODO
-    %map = x_new(2:end, :); % TODO
+    % TODO Is the dimensionality below right?
+    poles = reshape(cell2mat(poles), [], 2);
+    poles = poles';
+    
+    od = odometries{s};
+    u = [od.x; od.y; od.yaw];
+    [x, P] = SLAMUpdate(u, poles, x, P);
+    
+    current_pose = x(1, :); % TODO
+    map = x(2:end, :); % TODO
     %TODO: add check on goal detection somewhere
     %target_pose = route_planner(map, current_pose); % TODO.
     %velocity, angle = wheel_controller(current_pose, target_pose);
