@@ -36,7 +36,7 @@ x = zeros(3, 1); % init the state vector, first three coords are our pose
 
 for s = 1:ITERS
     scan = scans{s};
-    poles = PoleDetector(scan, 500);
+    poles = PoleDetector(scan, 1000);
     % TODO Is the dimensionality below right?
     poles = reshape(cell2mat(poles), [], 2)';
     
@@ -71,6 +71,7 @@ for s = 1:ITERS
     
      subplot(1, 4, 3);
      imshow(images{s}.left.rgb)
+     title(num2str(s));
      
      subplot(1, 4, 4);
      
@@ -82,7 +83,7 @@ for s = 1:ITERS
      scatter(px - x(1), py - x(2))
 
      
-    pause(0.3);
+    pause(0.5);
 end
 
 % while true
