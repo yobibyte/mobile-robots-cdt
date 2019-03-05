@@ -44,7 +44,7 @@ while true
     current_pose = x_new(1, :); % TODO
     map = x_new(2:end, :); % TODO
     %TODO: add check on goal detection somewhere
-    target_pose = route_planner(map, current_pose); % TODO.
+    target_pose = RoutePlanner(map, current_pose); % TODO.
 
     velocity, angle = WheelController(current_pose, target_pose);
     SendSpeedCommand(velocity, angle, husky_config.control_channel);
