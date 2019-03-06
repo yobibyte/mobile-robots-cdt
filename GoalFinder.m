@@ -16,12 +16,12 @@ function [visible, target_pose] = GoalFinder(images, current_pose)
   end
 
 
-  left_goal_coordinates
-  right_goal_coordinates
-  z = config.camera_model.left.fx * config.camera_model.baseline / (left_goal_coordinates(1) - right_goal_coordinates(1))
-  x = (left_goal_coordinates(1) + right_goal_coordinates(1)) * config.camera_model.baseline / (2*(left_goal_coordinates(1) - right_goal_coordinates(1)))
+  left_x = left_goal_coordinates(1) - config.camera_model.left.cx;
+  right_x = right_goal_coordinates(1) - config.camera_model.right.cx;
+  z = config.camera_model.left.fx * config.camera_model.baseline / (left_x - right_x);
+  x = (left_x + right_x) * config.camera_model.baseline / (2*(left_x - right_x));
 
-  target_pose = 'ciao';
+  target_pose = [z x];
 
 end
 
