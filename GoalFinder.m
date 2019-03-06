@@ -1,17 +1,18 @@
 % TODO: goal finder, given the stereo images, return whether we see the goal and where it is x§§
 
-function [visible, target_pose] = GoalFinder(images, current_pose)
+function [visible, target_pose] = GoalFinder(images)
 
   husky_id = 2; % Modify for your Husky
 
   % Get the channel names and sensor IDs for this Husky
   config = GetHuskyConfig(husky_id);
 
-  images = UndistortStereoImage(images, config.camera_model)
+  images = UndistortStereoImage(images, config.camera_model);
   [left_is_goal, left_goal_coordinates] = target_finder(images.left.rgb);
   [right_is_goal, right_goal_coordinates] = target_finder(images.right.rgb);
   visible = left_is_goal && right_is_goal;
   if not(visible)
+    target_pose = [0 0];
     return
   end
 
@@ -45,8 +46,8 @@ function [is_goal, goal_coordinates] = target_finder(image)
 
   %figure(1)
   %imshow(X, map)
-  figure
-  imshow(RoI)
+  %figure
+  %imshow(RoI)
 
   cluster_data = [];
   for i = 1:size(RoI,1)
@@ -57,7 +58,7 @@ function [is_goal, goal_coordinates] = target_finder(image)
     end
   end
   k=2; %Number of classes
-  [idx,centroid] = kmeans(cluster_data,k);
+  [idx,centroid] = kmeans(cluster_data,k, 'Replicates', 5);
   c_dist = pdist(centroid,'euclidean');
   if c_dist < 130
      goal_coordinates = (centroid(1, :) + centroid(2, :))/2;
@@ -73,9 +74,9 @@ function [is_goal, goal_coordinates] = target_finder(image)
 
   goal_coordinates = round(goal_coordinates);
 
-  marked = insertMarker(image,goal_coordinates,'x', 'size',10);
-  figure
-  imshow(marked)
+  %marked = insertMarker(image,centroid,'x', 'size',10);
+  %figure
+  %imshow(marked)
 
   if n_ones > match_threshold
     is_goal = true;
