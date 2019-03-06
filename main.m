@@ -35,15 +35,16 @@ x = zeros(3, 1); % init the state vector, first three coords are our pose
 
 
 if MODE == 1
+    %filename = '2019-03-06-12-10-43.mat';
     filename = '2019-03-06-12-12-27.mat';
-    %filename = '2019-03-04-17-27-25.mat';
     collected_data = load(filename);
     scans = collected_data.scans;
     odometries = collected_data.odometries;
     images = collected_data.images;
     ITERS = size(scans, 2);
 end
-
+overall = 0;
+prev_scan_timestamp = inf;
 for s = 1:ITERS    
     if MODE == 1
         scan = scans{s};
@@ -62,26 +63,33 @@ for s = 1:ITERS
     
     ssize = size(od, 2);
     disp(poles);
-    3
+    
     
     robot_x = x(1);
     robot_y = x(2);
     yaw = x(3);
 
+    counts = 0;
     for idx = 1:ssize
         if od(idx).source_timestamp <= scan.timestamp
             alpha = od(idx).yaw;
-            robot_x = robot_x*cos(alpha) - sin(alpha)*robot_y + od(idx).x;
-            robot_y = robot_x*sin(alpha) + cos(alpha)*robot_y + od(idx).y;
-            yaw = yaw + od(idx).yaw;
+            %robot_x = robot_x*cos(alpha) - sin(alpha)*robot_y + od(idx).x;
+            %robot_y = robot_x*sin(alpha) + cos(alpha)*robot_y + od(idx).y;
+            robot_x = robot_x + od(idx).x;
+            robot_y = robot_y + od(idx).y;
+            overall = overall + sqrt(od(idx).x^2+od(idx).y^2);
+            yaw = yaw + alpha;
+            counts = counts + 1;
             %yaw = AngleWrap(yaw);
         end
     end
-
+    prev_scan_timestamp = scan.timestamp;
+    
     dx = robot_x - x(1);
     dy = robot_y - x(2);
     dyaw = yaw - x(3);
     
+    fprintf("Distance %f | Counts %d\n", overall, counts);
     
     u = [dx; dy; dyaw];
     
