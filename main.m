@@ -63,19 +63,15 @@ for s = 1:ITERS
 
     ssize = size(od, 2);
     
-    odx = 0;
-    ody = 0;
-    odyaw = 0;
-    
     robot_x = x(1);
     robot_y = x(2);
     yaw = x(3);
     
     for idx = 1:ssize
         if od(idx).source_timestamp > scan.timestamp
-            robot_x = robot_x*cos(yaw) - sin(yaw)*robot_y + od(idx).x;
-            robot_y = robot_x*sin(yaw) + cos(yaw)*robot_y + od(idx).y;
-            yaw = atan2(robot_y, robot_x);
+            robot_x = robot_x*cos(od(idx).yaw) - sin(od(idx).yaw)*robot_y + od(idx).x;
+            robot_y = robot_x*sin(od(idx).yaw) + cos(od(idx).yaw)*robot_y + od(idx).y;
+            yaw = yaw + od(idx).yaw;
         end
     end
     
