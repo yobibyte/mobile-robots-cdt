@@ -7,7 +7,7 @@ function [visible, target_pose] = GoalFinder(images, current_pose)
   % Get the channel names and sensor IDs for this Husky
   config = GetHuskyConfig(husky_id);
 
-  images = UndistortStereoImage(images, config.camera_model);
+  images = UndistortStereoImage(images, config.camera_model)
   [left_is_goal, left_goal_coordinates] = target_finder(images.left.rgb);
   [right_is_goal, right_goal_coordinates] = target_finder(images.right.rgb);
   visible = left_is_goal && right_is_goal;
@@ -15,16 +15,11 @@ function [visible, target_pose] = GoalFinder(images, current_pose)
     return
   end
 
-  % Camera parameters definition.
-  K = [config.camera_model.left.fx 0 0; 0 config.camera_model.left.fy 0; config.camera_model.left.cx config.camera_model.left.cy 1];
-  P = K * [eye(3) zeros(3, 1)];
 
-  stereo_rotation = eye(3);
-  stereo_translation = [config.camera_model.baseline; 0; 0];
-  P_prime = K * [stereo_rotation stereo_translation];
-
-  A = [left_goal_coordinates(1) * P(3, :) - P(1, :); left_goal_coordinates(2) * P(3, :) - P(2, :); right_goal_coordinates(1) * P_prime(3, :) - P_prime(1, :); right_goal_coordinates(2) * P_prime(3, :) - P_prime(2, :)];
-  reconstruction = null(A);
+  left_goal_coordinates
+  right_goal_coordinates
+  z = config.camera_model.left.fx * config.camera_model.baseline / (left_goal_coordinates(1) - right_goal_coordinates(1))
+  x = (left_goal_coordinates(1) + right_goal_coordinates(1)) * config.camera_model.baseline / (2*(left_goal_coordinates(1) - right_goal_coordinates(1)))
 
   target_pose = 'ciao';
 
@@ -50,8 +45,8 @@ function [is_goal, goal_coordinates] = target_finder(image)
 
   %figure(1)
   %imshow(X, map)
-  %figure(2)
-  %imshow(RoI)
+  figure
+  imshow(RoI)
 
   cluster_data = [];
   for i = 1:size(RoI,1)
@@ -78,9 +73,9 @@ function [is_goal, goal_coordinates] = target_finder(image)
 
   goal_coordinates = round(goal_coordinates);
 
-  %marked = insertMarker(X,goal_coordinates,'x', 'size',10);
-  %figure(3)
-  %imshow(marked, map)
+  marked = insertMarker(image,goal_coordinates,'x', 'size',10);
+  figure
+  imshow(marked)
 
   if n_ones > match_threshold
     is_goal = true;
@@ -96,7 +91,7 @@ end
 
 
 
-
+%% Get depth, v1.
 
 
 % Camera parameters definition.
@@ -127,3 +122,17 @@ end
 %points3D(left_goal_coordinates)
 % Find the distances from the camera in meters.
 %dists = sqrt(sum(points3D(left_goal_coordinates) .^ 2))
+
+
+%% Get depth, v2.
+
+% Camera parameters definition.
+%K = [config.camera_model.left.fx 0 0; 0 config.camera_model.left.fy 0; config.camera_model.left.cx config.camera_model.left.cy 1];
+%P = K * [eye(3) zeros(3, 1)];
+
+%stereo_rotation = eye(3);
+%stereo_translation = [config.camera_model.baseline; 0; 0];
+%P_prime = K * [stereo_rotation stereo_translation];
+
+%A = [left_goal_coordinates(1) * P(3, :) - P(1, :); left_goal_coordinates(2) * P(3, :) - P(2, :); right_goal_coordinates(1) * P_prime(3, :) - P_prime(1, :); right_goal_coordinates(2) * P_prime(3, :) - P_prime(2, :)];
+%reconstruction = A \ zeros(4, 1)
