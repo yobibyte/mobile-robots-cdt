@@ -43,7 +43,7 @@ for s = 1:ITERS
 
     c_images = GetStereoImages(mailbox, config.stereo_channel, true);
     images{s} = c_images;
-
+    disp(s);
     pause(0.1); % don't overload moos w/commands
 end
 

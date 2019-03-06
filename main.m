@@ -38,7 +38,7 @@ x = zeros(3, 1); % init the state vector, first three coords are our pose
 
 for s = 1:ITERS
     scan = scans{s};
-    poles = PoleDetector(scan, 800);
+    poles = PoleDetector(scan, 700);
     poles = reshape(cell2mat(poles), [], 2)';
     
     od = odometries{s};
@@ -48,9 +48,11 @@ for s = 1:ITERS
     ody = 0;
     odyaw = 0;
     for idx = 1:ssize
-        odx = odx + od(idx).x;
-        ody = ody + od(idx).y;
-        odyaw = odyaw + od(idx).yaw;
+        if od(idx).source_timestamp > scan.timestamp
+            odx = odx + od(idx).x;
+            ody = ody + od(idx).y;
+            odyaw = odyaw + od(idx).yaw;
+        end
     end
     
     u = [odx; ody; odyaw];
