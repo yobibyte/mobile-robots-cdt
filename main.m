@@ -36,7 +36,6 @@ x = zeros(3, 1); % init the state vector, first three coords are our pose
 
 if MODE == 1
     filename = '2019-03-06-12-12-27.mat';
-    
     %filename = '2019-03-04-17-27-25.mat';
     collected_data = load(filename);
     scans = collected_data.scans;
@@ -45,7 +44,7 @@ if MODE == 1
     ITERS = size(scans, 2);
 end
 
-for s = 1:ITERS
+for s = 1:ITERS    
     if MODE == 1
         scan = scans{s};
         od = odometries{s};
@@ -62,7 +61,9 @@ for s = 1:ITERS
     poles = reshape(cell2mat(poles), 2, []);
     
     ssize = size(od, 2);
-
+    disp(poles);
+    3
+    
     robot_x = x(1);
     robot_y = x(2);
     yaw = x(3);
@@ -73,6 +74,7 @@ for s = 1:ITERS
             robot_x = robot_x*cos(alpha) - sin(alpha)*robot_y + od(idx).x;
             robot_y = robot_x*sin(alpha) + cos(alpha)*robot_y + od(idx).y;
             yaw = yaw + od(idx).yaw;
+            %yaw = AngleWrap(yaw);
         end
     end
 
@@ -80,11 +82,11 @@ for s = 1:ITERS
     dy = robot_y - x(2);
     dyaw = yaw - x(3);
     
-
+    
     u = [dx; dy; dyaw];
-    %u = [robot_x; robot_y; robot_yaw];
+    
     [x, P] = SLAMUpdate(u, poles, x, P);
-
+                       
     map = reshape(x(4:end), 2, []);
     
     goal_reached = false;
@@ -120,8 +122,11 @@ function plot_state(robot_pose, map, poles, image, iter, scan)
     hold on;
 
     % plot the slam state
-    [mx, my] = pol2cart(map(2, :)' + robot_yaw, map(1, :)');
-    scatter(mx + robot_x, my + robot_y)
+    %[mx, my] = pol2cart(map(2, :)' + robot_yaw, map(1, :)');
+    %slam_x = map(1, :)*cos(robot_yaw) - sin(robot_yaw)*map(2,:) + robot_x;
+    %slam_y = map(1, :)*sin(robot_yaw) + cos(robot_yaw)*map(2,:) + robot_y;           
+    scatter(map(1, :), map(2, :))
+    
 
     % plot the tobot
     scatter(robot_x, robot_y, 'red');
