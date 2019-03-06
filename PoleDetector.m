@@ -29,7 +29,7 @@ function [coordinates] = PoleDetector(scan, threshold)
             if v(1) < 0.004 && v(2) < 0.004
                 scatter(c(1), c(2));
                 [theta, rho] = cart2pol(c(1), c(2));
-                coordinates{i} = [theta, rho];
+                coordinates{i} = [rho, theta];
             end            
         end
     end
