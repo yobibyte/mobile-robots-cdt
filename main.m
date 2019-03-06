@@ -58,7 +58,7 @@ for s = 1:ITERS
     
     poles = PoleDetector(scan, 800); 
     poles = reshape(cell2mat(poles), 2, []);
-    % poles = [1, 0]';
+    %poles = [1, 0]';
 
     ssize = size(od, 2);
     
@@ -67,11 +67,11 @@ for s = 1:ITERS
     yaw = x(3);
     
     for idx = 1:ssize
-        if od(idx).source_timestamp > scan.timestamp
+        %if od(idx).destination_timestamp > scan.timestamp
             robot_x = robot_x*cos(od(idx).yaw) - sin(od(idx).yaw)*robot_y + od(idx).x;
             robot_y = robot_x*sin(od(idx).yaw) + cos(od(idx).yaw)*robot_y + od(idx).y;
             yaw = yaw + od(idx).yaw;
-        end
+        %end
     end
     
     dx = robot_x - x(1);
@@ -80,7 +80,7 @@ for s = 1:ITERS
     
     u = [dx; dy; dyaw];
     [x, P] = SLAMUpdate(u, poles, x, P);
-    map = reshape(x(4:end), [], 2);
+    map = reshape(x(4:end), 2, []);
     
     goal_reached = false;
     % goal_reached = ...; % TODO goal reached check
@@ -99,7 +99,7 @@ end
 
 
 function plot_state(robot_pose, map, poles, image, iter)
-    SQUARE_SIZE = 4;
+    SQUARE_SIZE = 5;
     clf();
     subplot(1, 2, 1);
 
@@ -115,12 +115,12 @@ function plot_state(robot_pose, map, poles, image, iter)
     hold on;
 
     % plot the slam state
-    [mx, my] = pol2cart(map(:, 2)' + robot_yaw, map(:, 1)');
+    [mx, my] = pol2cart(map(2, :)' + robot_yaw, map(1, :)');
     scatter(mx + robot_x, my + robot_y)
 
     % plot the tobot
     scatter(robot_x, robot_y, 'red');
-    plot([robot_x, xprime],[robot_y, yprime], 'red');
+    plot([robot_x, xprime], [robot_y, yprime], 'red');
     
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
@@ -131,6 +131,6 @@ function plot_state(robot_pose, map, poles, image, iter)
     hold off;
     
     subplot(1, 2, 2);
-    imshow(image)
+    imshow(image);
     title(num2str(iter));
 end
