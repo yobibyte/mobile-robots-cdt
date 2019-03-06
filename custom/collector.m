@@ -38,7 +38,7 @@ for s = 1:ITERS
 
     wheel_odometry = GetWheelOdometry(mailbox, ...
                                       config.wheel_odometry_channel, ...
-                                      true);
+                                      false);
     odometries{s} = wheel_odometry;
 
     c_images = GetStereoImages(mailbox, config.stereo_channel, true);
