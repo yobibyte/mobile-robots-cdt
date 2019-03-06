@@ -31,20 +31,59 @@ odometries = collected_data.odometries;
 images = collected_data.images;
 ITERS = size(scans, 2);
 
-P = eye(1); % initialise covariance matrix
-x = zeros(1, 3); % init the state vector, first three coords are our pose
+P = eye(3); % initialise covariance matrix
+x = zeros(3, 1); % init the state vector, first three coords are our pose
 
 for s = 1:ITERS
     scan = scans{s};
-    poles = PoleDetector(scan, 800);
-    wheel_odometry = odometries{s};
-    %[x_new, P] = SLAMUpdate(wheel_odometry, poles, x, P);
-    %current_pose = x_new(1, :); % TODO
-    %map = x_new(2:end, :); % TODO
+    poles = PoleDetector(scan, 1000);
+    % TODO Is the dimensionality below right?
+    poles = reshape(cell2mat(poles), [], 2)';
+    
+    
+    od = odometries{s};
+    u = [od.x; od.y; od.yaw];
+    [x, P] = SLAMUpdate(u, poles, x, P);
+    
+    % current_pose = x(1, :); % TODO
+    % map = x(2:end, :); % TODO
     %TODO: add check on goal detection somewhere
     %target_pose = route_planner(map, current_pose); % TODO.
     %velocity, angle = wheel_controller(current_pose, target_pose);
     %SendSpeedCommand(velocity, angle, husky_config.control_channel);
+    clf();
+    subplot(1, 3, 1);
+    
+    if size(x, 1) > 3
+        map = reshape(x(4:end), [], 2);
+        
+        k = tan(x(3));
+        l = x(2) - k*x(1);
+        yprime = k * (x(1)+0.1) + l;
+        
+        hold on;
+        scatter(map(:, 1), map(:, 2));
+        scatter(x(1), x(2), 'red');
+        plot([x(1), x(1)+0.1],[x(2), yprime], 'red');
+        hold off;
+        
+    end
+    
+     subplot(1, 4, 3);
+     imshow(images{s}.left.rgb)
+     title(num2str(s));
+     
+     subplot(1, 4, 4);
+     
+     
+     
+     % plot poles
+     [px, py] = pol2cart(poles(1, :)', poles(2, :)' + x(3));
+     
+     scatter(px - x(1), py - x(2))
+
+     
+    pause(0.5);
 end
 
 % while true

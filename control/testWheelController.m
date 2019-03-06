@@ -12,7 +12,7 @@ while true
     PlotPose(s);    
     PlotPose(e);
 
-    [angular_velocity, linear_velocity] = controller.update(a, e);
+    [distance, angular_velocity, linear_velocity] = controller.update(a, e);
 
     a(3) = a(3) + angular_velocity;
     a(1:2) = a(1:2) + linear_velocity;
