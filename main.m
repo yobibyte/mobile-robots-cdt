@@ -56,10 +56,9 @@ for s = 1:ITERS
         od = GetWheelOdometry(mailbox, config.wheel_odometry_channel);
     end
     
-    poles = PoleDetector(scan, 800);
-    
-    poles = reshape(cell2mat(poles), [], 2)';
-   
+    poles = PoleDetector(scan, 800); 
+    poles = reshape(cell2mat(poles), 2, []);
+    % poles = [1, 0]';
 
     ssize = size(od, 2);
     
@@ -117,14 +116,14 @@ function plot_state(robot_pose, map, poles, image, iter)
 
     % plot the slam state
     [mx, my] = pol2cart(map(:, 2)' + robot_yaw, map(:, 1)');
-    %scatter(mx + robot_x, my + robot_y)
+    scatter(mx + robot_x, my + robot_y)
 
     % plot the tobot
     scatter(robot_x, robot_y, 'red');
     plot([robot_x, xprime],[robot_y, yprime], 'red');
     
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
-    %scatter(px + robot_x, py + robot_y, 'magenta');
+    scatter(px + robot_x, py + robot_y, 'magenta');
     
     axis([-SQUARE_SIZE SQUARE_SIZE -SQUARE_SIZE SQUARE_SIZE])
     axis ij
