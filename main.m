@@ -56,18 +56,9 @@ for s = 1:ITERS
 
         od = GetWheelOdometry(mailbox, config.wheel_odometry_channel);
     end
-<<<<<<< HEAD
     
     poles = PoleDetector(scan, 800); 
     poles = reshape(cell2mat(poles), 2, []);
-    %poles = [1, 0]';
-=======
-
-    poles = PoleDetector(scan, 800);
-
-    poles = reshape(cell2mat(poles), [], 2)';
-
->>>>>>> 2259b395abb65d2cafa739a6d4a76a83a7b9d595
 
     ssize = size(od, 2);
 
@@ -89,13 +80,9 @@ for s = 1:ITERS
 
     u = [dx; dy; dyaw];
     [x, P] = SLAMUpdate(u, poles, x, P);
-<<<<<<< HEAD
+
     map = reshape(x(4:end), 2, []);
     
-=======
-    map = reshape(x(4:end), [], 2);
-
->>>>>>> 2259b395abb65d2cafa739a6d4a76a83a7b9d595
     goal_reached = false;
     % goal_reached = ...; % TODO goal reached check
     if goal_reached
