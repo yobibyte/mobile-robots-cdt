@@ -69,7 +69,7 @@ for s = 1:ITERS
     yaw = x(3);
 
     for idx = 1:ssize
-        if od(idx).destination_timestamp <= scan.timestamp
+        if od(idx).source_timestamp <= scan.timestamp
             alpha = od(idx).yaw;
             robot_x = robot_x*cos(alpha) - sin(alpha)*robot_y + od(idx).x;
             robot_y = robot_x*sin(alpha) + cos(alpha)*robot_y + od(idx).y;
