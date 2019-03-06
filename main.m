@@ -25,6 +25,7 @@ config = GetHuskyConfig(husky_id);
 % pause(3); % Give mexmoos a chance to connect (important!)
 
 filename = '2019-03-04-17-27-25.mat';
+%filename = '2019-03-06-10-47-35.mat';
 collected_data = load(filename);
 scans = collected_data.scans;
 odometries = collected_data.odometries;
@@ -34,58 +35,70 @@ ITERS = size(scans, 2);
 P = eye(3); % initialise covariance matrix
 x = zeros(3, 1); % init the state vector, first three coords are our pose
 
+
 for s = 1:ITERS
     scan = scans{s};
-    poles = PoleDetector(scan, 1000);
-    % TODO Is the dimensionality below right?
+    poles = PoleDetector(scan, 800);
     poles = reshape(cell2mat(poles), [], 2)';
     
-    
     od = odometries{s};
-    u = [od.x; od.y; od.yaw];
-    [x, P] = SLAMUpdate(u, poles, x, P);
+    ssize = size(od, 2);
     
-    % current_pose = x(1, :); % TODO
-    % map = x(2:end, :); % TODO
-    %TODO: add check on goal detection somewhere
-    %target_pose = route_planner(map, current_pose); % TODO.
-    %velocity, angle = wheel_controller(current_pose, target_pose);
-    %SendSpeedCommand(velocity, angle, husky_config.control_channel);
-    clf();
-    subplot(1, 3, 1);
-    
-    if size(x, 1) > 3
-        map = reshape(x(4:end), [], 2);
-        
-        k = tan(x(3));
-        l = x(2) - k*x(1);
-        yprime = k * (x(1)+0.1) + l;
-        
-        hold on;
-        scatter(map(:, 1), map(:, 2));
-        scatter(x(1), x(2), 'red');
-        plot([x(1), x(1)+0.1],[x(2), yprime], 'red');
-        hold off;
-        
+    odx = 0;
+    ody = 0;
+    odyaw = 0;
+    for idx = 1:ssize
+        odx = odx + od(idx).x;
+        ody = ody + od(idx).y;
+        odyaw = odyaw + od(idx).yaw;
     end
     
-     subplot(1, 4, 3);
-     imshow(images{s}.left.rgb)
-     title(num2str(s));
-     
-     subplot(1, 4, 4);
-     
-     
-     
-     % plot poles
-     [px, py] = pol2cart(poles(1, :)', poles(2, :)' + x(3));
-     
-     scatter(px - x(1), py - x(2))
-
-     
-    pause(0.5);
+    u = [odx; ody; odyaw];
+    [x, P] = SLAMUpdate(u, poles, x, P);
+    
+    map = reshape(x(4:end), [], 2);
+    plot_state(x(1:3), map, poles, images{s}.left.rgb, s);
+    
+    pause(0.4);
 end
+% TODO sync wheelodpometry frequency sampling
+% TODO 
+function plot_state(robot_pose, map, poles, image, iter)
+    clf();
+    subplot(1, 2, 1);
 
+    robot_x = robot_pose(1);
+    robot_y = robot_pose(2);
+    robot_yaw = robot_pose(3);
+
+    k = tan(robot_yaw);
+    l = robot_y - k*robot_x;
+    xprime = robot_x+0.5;
+    yprime = k * (xprime) + l;
+
+    hold on;
+
+    % plot the slam state
+    [mx, my] = pol2cart(map(:, 2)' + robot_yaw, map(:, 1)');
+    scatter(mx + robot_x, my + robot_y)
+
+    % plot the tobot
+    scatter(robot_x, robot_y, 'red');
+    plot([robot_x, xprime],[robot_y, yprime], 'red');
+
+    % plot poles
+    [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
+    scatter(px + robot_x, py + robot_y, 'magenta');
+
+    axis([-5 5 -5 5])
+    axis ij
+    axis square
+    hold off;
+    
+    subplot(1, 2, 2);
+    imshow(image)
+    title(num2str(iter));
+end
 % while true
     % Fetch latest messages from mex-moos
     %mailbox = mexmoos('FETCH');
@@ -94,7 +107,6 @@ end
     %wheel_odometry = GetWheelOdometry(mailbox, ...
                                       %config.wheel_odometry_channel, ...
                                       %true);
-
     %poles = PoleDetector(scan, 800);
     %[x_new, P] = SLAMUpdate(wheel_odometry, poles, x, P);
 
