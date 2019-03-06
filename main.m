@@ -36,7 +36,8 @@ x = zeros(3, 1); % init the state vector, first three coords are our pose
 
 if MODE == 1
     filename = '2019-03-06-12-12-27.mat';
-    %filename = '2019-03-06-10-47-35.mat';
+    
+    %filename = '2019-03-04-17-27-25.mat';
     collected_data = load(filename);
     scans = collected_data.scans;
     odometries = collected_data.odometries;
@@ -59,7 +60,7 @@ for s = 1:ITERS
     
     poles = PoleDetector(scan, 800); 
     poles = reshape(cell2mat(poles), 2, []);
-
+    
     ssize = size(od, 2);
 
     robot_x = x(1);
@@ -67,18 +68,21 @@ for s = 1:ITERS
     yaw = x(3);
 
     for idx = 1:ssize
-        %if od(idx).destination_timestamp > scan.timestamp
-            robot_x = robot_x*cos(od(idx).yaw) - sin(od(idx).yaw)*robot_y + od(idx).x;
-            robot_y = robot_x*sin(od(idx).yaw) + cos(od(idx).yaw)*robot_y + od(idx).y;
+        if od(idx).destination_timestamp <= scan.timestamp
+            alpha = od(idx).yaw;
+            robot_x = robot_x*cos(alpha) - sin(alpha)*robot_y + od(idx).x;
+            robot_y = robot_x*sin(alpha) + cos(alpha)*robot_y + od(idx).y;
             yaw = yaw + od(idx).yaw;
-        %end
+        end
     end
 
     dx = robot_x - x(1);
     dy = robot_y - x(2);
     dyaw = yaw - x(3);
+    
 
     u = [dx; dy; dyaw];
+    %u = [robot_x; robot_y; robot_yaw];
     [x, P] = SLAMUpdate(u, poles, x, P);
 
     map = reshape(x(4:end), 2, []);
@@ -93,14 +97,14 @@ for s = 1:ITERS
     % velocity, angle = wheel_controller(current_pose, target_pose);
     % SendSpeedCommand(velocity, angle, husky_config.control_channel);
 
-    plot_state(x(1:3), map, poles, images{s}.left.rgb, s);
+    plot_state(x(1:3), map, poles, images{s}.left.rgb, s, scan);
 
     pause(0.5);
 end
 
 
-function plot_state(robot_pose, map, poles, image, iter)
-    SQUARE_SIZE = 5;
+function plot_state(robot_pose, map, poles, image, iter, scan)
+    SQUARE_SIZE = 10;
     clf();
     subplot(1, 2, 1);
 
@@ -121,12 +125,11 @@ function plot_state(robot_pose, map, poles, image, iter)
 
     % plot the tobot
     scatter(robot_x, robot_y, 'red');
-
-    plot([robot_x, xprime], [robot_y, yprime], 'red');
+    % plot([robot_x, xprime], [robot_y, yprime], 'red');
     
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
-    
+    ShowLaserScan(scan, [robot_x, robot_y, robot_yaw]');
     axis([-SQUARE_SIZE SQUARE_SIZE -SQUARE_SIZE SQUARE_SIZE])
     axis ij
     axis square
