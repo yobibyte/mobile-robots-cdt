@@ -45,19 +45,20 @@ for s = 1:ITERS
     if MODE == 1
         scan = scans{s};
         od = odometries{s};
+        image = images{s};
     else
         mailbox = mexmoos('FETCH');
         scan = GetLaserScans(mailbox, config.laser_channel, true);
         stereo_images = GetStereoImages(mailbox, config.stereo_channel, true);
-        
+
         od = GetWheelOdometry(mailbox, config.wheel_odometry_channel);
     end
-    
+
     poles = PoleDetector(scan, 700);
     poles = reshape(cell2mat(poles), [], 2)';
-    
+
     ssize = size(od, 2);
-    
+
     odx = 0;
     ody = 0;
     odyaw = 0;
@@ -68,24 +69,24 @@ for s = 1:ITERS
             odyaw = odyaw + od(idx).yaw;
         end
     end
-    
+
     u = [odx; ody; odyaw];
     [x, P] = SLAMUpdate(u, poles, x, P);
     map = reshape(x(4:end), [], 2);
-    
+
     goal_reached = false;
     % goal_reached = ...; % TODO goal reached check
     if goal_reached
         break
     end
-      
-    
+
+
     % target_pose = route_planner(map, x(1:3)); % TODO.
     % velocity, angle = wheel_controller(current_pose, target_pose);
     % SendSpeedCommand(velocity, angle, husky_config.control_channel);
 
     plot_state(x(1:3), map, poles, images{s}.left.rgb, s);
-    
+
     pause(0.4);
 end
 
@@ -102,7 +103,7 @@ function plot_state(robot_pose, map, poles, image, iter)
     l = robot_y - k*robot_x;
     xprime = robot_x+0.5;
     yprime = k * (xprime) + l;
-    
+
     hold on;
 
     % plot the slam state
@@ -112,7 +113,7 @@ function plot_state(robot_pose, map, poles, image, iter)
     % plot the tobot
     scatter(robot_x, robot_y, 'red');
     plot([robot_x, xprime],[robot_y, yprime], 'red');
-    
+
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
 
@@ -120,7 +121,7 @@ function plot_state(robot_pose, map, poles, image, iter)
     axis ij
     axis square
     hold off;
-    
+
     subplot(1, 2, 2);
     imshow(image)
     title(num2str(iter));
