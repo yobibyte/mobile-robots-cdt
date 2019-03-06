@@ -24,9 +24,8 @@ config = GetHuskyConfig(husky_id);
 % mexmoos('REGISTER', config.wheel_odometry_channel, 0.0);
 % pause(3); % Give mexmoos a chance to connect (important!)
 
-%filename = '2019-03-04-17-27-25.mat';
 filename = '2019-03-04-17-27-25.mat';
-filename = 'stolen_data.mat';
+%filename = '2019-03-06-10-47-35.mat';
 collected_data = load(filename);
 scans = collected_data.scans;
 odometries = collected_data.odometries;
@@ -36,13 +35,25 @@ ITERS = size(scans, 2);
 P = eye(3); % initialise covariance matrix
 x = zeros(3, 1); % init the state vector, first three coords are our pose
 
+
 for s = 1:ITERS
     scan = scans{s};
     poles = PoleDetector(scan, 800);
     poles = reshape(cell2mat(poles), [], 2)';
     
     od = odometries{s};
-    u = [od.x; od.y; od.yaw];
+    ssize = size(od, 2);
+    
+    odx = 0;
+    ody = 0;
+    odyaw = 0;
+    for idx = 1:ssize
+        odx = odx + od(idx).x;
+        ody = ody + od(idx).y;
+        odyaw = odyaw + od(idx).yaw;
+    end
+    
+    u = [odx; ody; odyaw];
     [x, P] = SLAMUpdate(u, poles, x, P);
     
     map = reshape(x(4:end), [], 2);
