@@ -131,7 +131,14 @@ for s = 1:ITERS
         path = [x(1:3); rotation_pose];
       end
     end
-    [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(min(2 + mod(s-1, FREQ), size(path, 1)),:));
+
+    % Move along the path.
+    [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2,:));
+    counter = 1;
+    while distance < 0.1 && counter < size(path, 1)
+      [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2 + counter,:));
+      counter = counter + 1;
+    end
 
 
     if MODE == 0
