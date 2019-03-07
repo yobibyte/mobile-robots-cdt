@@ -58,7 +58,7 @@ function [is_goal, goal_coordinates] = target_finder(image)
     end
   end
   k=2; %Number of classes
-  [idx,centroid] = kmeans(cluster_data,k, 'Replicates', 5);
+  [idx,centroid] = kmeans(cluster_data,k, 'Replicates', 2);
   c_dist = pdist(centroid,'euclidean');
   if c_dist < 130
      goal_coordinates = (centroid(1, :) + centroid(2, :))/2;
