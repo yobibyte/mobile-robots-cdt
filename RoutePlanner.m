@@ -17,7 +17,7 @@ function [prm, path] = RoutePlanner(poles, current_pose, target)
   for i=1:size(poles, 1)
       setOccupancy(map,[poles(i, 1) poles(i, 2)], 1)
   end
-  inflate(map, 0.1);
+  inflate(map, 0.5);
   prm = robotics.PRM;
   prm.Map = map;
   prm.NumNodes = 50;
