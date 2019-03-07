@@ -87,26 +87,27 @@ for s = 1:ITERS
         break;
     end
     
-    [prm, target] = RoutePlanner(map', x(1:3), [5 0 0]);
+    [prm, path] = RoutePlanner(map', x(1:3), [5 0 0]);
 
-    [distance, angular_velocity, linear_velocity] = controller.update(x(1:3), target);
+    %[distance, angular_velocity, linear_velocity] = controller.update(x(1:3), target);
     fprintf("av=%f lv=%f\n", angular_velocity, linear_velocity);
     % target_pose = route_planner(map, x(1:3)); % TODO.
     % velocity, angle = wheel_controller(current_pose, target_pose);
     % SendSpeedCommand(velocity, angle, husky_config.control_channel);
 
-    plot_state(x(1:3), map, poles, images{s}.left.rgb, s, scan);
+    plot_state(x(1:3), map, poles, images{s}.left.rgb, s, scan, path);
     %figure;
+    %subplot(2, 2, 3);
     %show(prm);
     pause(0.5);
 end
 
 
-function plot_state(robot_pose, map, poles, image, iter, scan)
+function plot_state(robot_pose, map, poles, image, iter, scan, path)
     SQUARE_SIZE = 10;
     clf();
-    subplot(1, 2, 1);
-
+    subplot(2, 2, 1);
+    
     robot_x = robot_pose(1);
     robot_y = robot_pose(2);
     robot_yaw = robot_pose(3);
@@ -121,9 +122,12 @@ function plot_state(robot_pose, map, poles, image, iter, scan)
     % plot the slam state
     scatter(map(1, :), map(2, :))
 
-    % plot the tobot
+    % plot the robot
     scatter(robot_x, robot_y, 'red');
     plot([robot_x, xprime], [robot_y, yprime], 'red');
+    
+    % plot path
+    plot(path(:, 1), path(:, 2))
     
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
@@ -131,9 +135,9 @@ function plot_state(robot_pose, map, poles, image, iter, scan)
     axis([-SQUARE_SIZE SQUARE_SIZE -SQUARE_SIZE SQUARE_SIZE])
     axis ij
     axis square
-    hold off;
-
-    subplot(1, 2, 2);
+    hold off;           
+    
+    subplot(2, 2, 2);
     imshow(image);
     title(num2str(iter));
 end
