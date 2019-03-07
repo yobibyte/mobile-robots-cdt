@@ -65,33 +65,48 @@ for s = 1:ITERS
     disp(poles);
     
     
-    robot_x = x(1);
-    robot_y = x(2);
-    yaw = x(3);
+    %robot_x = x(1);
+    dx = 0;
+    dy = 0;
+    %robot_y = x(2);
+    yaw = 0;
 
     counts = 0;
+    
+    G_last = BuildSE2Transform([0, 0, 0]);
+    
     for idx = 1:ssize
         if od(idx).source_timestamp <= scan.timestamp
-            alpha = od(idx).yaw;
-            %robot_x = robot_x*cos(alpha) - sin(alpha)*robot_y + od(idx).x;
-            %robot_y = robot_x*sin(alpha) + cos(alpha)*robot_y + od(idx).y;
-            robot_x = robot_x + od(idx).x;
-            robot_y = robot_y + od(idx).y;
-            overall = overall + sqrt(od(idx).x^2+od(idx).y^2);
-            yaw = yaw + alpha;
-            counts = counts + 1;
+            G_last_current = BuildSE2Transform([od(idx).x,od(idx).y, od(idx).yaw]);
+            G_current = G_last * G_last_current;
+            G_last = G_current;
+%             alpha = od(idx).yaw;
+%             dx = dx*cos(alpha) - sin(alpha)*dy + od(idx).x;
+%             dy = dx*sin(alpha) + cos(alpha)*dy + od(idx).y;
+%             
+%             overall = overall + sqrt(od(idx).x^2+od(idx).y^2);
+%             yaw = yaw + alpha;
+%             counts = counts + 1;
             %yaw = AngleWrap(yaw);
         end
     end
-    prev_scan_timestamp = scan.timestamp;
+    G_t1_t2 = G_last;
+%     G_t2_t1 = inv(G_last);
+    u = SE2ToComponents(G_t1_t2)';
     
-    dx = robot_x - x(1);
-    dy = robot_y - x(2);
-    dyaw = yaw - x(3);
+    prev_scan_timestamp = scan.timestamp;
+    %x1c = robot_x*cos(x(3)) + sin(x(3))*robot_y;
+    %y1c = -robot_x*sin(x(3)) + cos(x(3))*robot_y;
+    
+    %dx = x1c - x(1);
+    %dy = y1c - x(2);
+    %dx = robot_x;
+    %dy = robot_y;
+%     dyaw = -yaw;
     
     fprintf("Distance %f | Counts %d\n", overall, counts);
     
-    u = [dx; dy; dyaw];
+%     u = [dx; dy; dyaw];
     
     [x, P] = SLAMUpdate(u, poles, x, P);
                        

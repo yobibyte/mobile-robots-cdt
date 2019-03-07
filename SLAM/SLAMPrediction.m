@@ -19,7 +19,7 @@ function [xPred, PPred] = SLAMPrediction(u, x, P)
 
   % Covariances
   % PPredvv: covariance vehicle pose to vehicle pose
-  UTrue = diag([0.01,0.01,1.5*pi/180]).^2;
+  UTrue = diag([0.01,0.01, 1.5*pi/180]).^2; %1.5 previously
   UEst = 0.5*UTrue;
   PPredvv = J1(xVehicle, u) * P(1:3, 1:3) * J1(xVehicle, u)' + ...
       J2(xVehicle, u) * UEst * J2(xVehicle, u)';
