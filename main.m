@@ -44,15 +44,10 @@ if MODE == 1
 end
 overall = 0;
 
-<<<<<<< HEAD
-controller = WheelController
+controller = WheelController;
 goal_reached = false;
 goal_pose = [5 0 0];
-=======
-controller = WheelController;
-
 G_last_global = BuildSE2Transform([0, 0, 0]);
->>>>>>> 69bc68754f4fffb6b549e78098c2cef14a13e45b
 
 for s = 1:ITERS
     if MODE == 1
@@ -72,17 +67,7 @@ for s = 1:ITERS
 
     ssize = size(od, 2);
     disp(poles);
-<<<<<<< HEAD
 
-    dx = 0;
-    dy = 0;
-    yaw = 0;
-
-    counts = 0;
-
-=======
-    
->>>>>>> 69bc68754f4fffb6b549e78098c2cef14a13e45b
     G_last = BuildSE2Transform([0, 0, 0]);
 
     for idx = 1:ssize
@@ -93,16 +78,10 @@ for s = 1:ITERS
     end
     G_t1_t2 = G_last;
     u = SE2ToComponents(G_t1_t2)';
-<<<<<<< HEAD
 
-    fprintf("Distance %f | Counts %d\n", overall, counts);
-
-=======
-    
     G_last_global = G_last_global  * G_t1_t2;
-    
-    
->>>>>>> 69bc68754f4fffb6b549e78098c2cef14a13e45b
+
+
     [x, P] = SLAMUpdate(u, poles, x, P);
 
     map = reshape(x(4:end), 2, []);
@@ -125,13 +104,8 @@ for s = 1:ITERS
     if goal_reached
         goal_pose = [0 0 0];
     end
-<<<<<<< HEAD
 
     [prm, target] = RoutePlanner(map', x(1:3), goal_pose);
-=======
-    
-    [prm, path] = RoutePlanner(map', x(1:3), [5 0 0]);
->>>>>>> 69bc68754f4fffb6b549e78098c2cef14a13e45b
 
     %[distance, angular_velocity, linear_velocity] = controller.update(x(1:3), target);
     fprintf("av=%f lv=%f\n", angular_velocity, linear_velocity);
@@ -152,7 +126,7 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path)
     SQUARE_SIZE = 10;
     clf();
     subplot(2, 2, 1);
-    
+
     robot_x = robot_pose(1);
     robot_y = robot_pose(2);
     robot_yaw = robot_pose(3);
@@ -165,36 +139,23 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path)
     hold on;
 
     % plot the slam state
-<<<<<<< HEAD
-    %[mx, my] = pol2cart(map(2, :)' + robot_yaw, map(1, :)');
-    %slam_x = map(1, :)*cos(robot_yaw) - sin(robot_yaw)*map(2,:) + robot_x;
-    %slam_y = map(1, :)*sin(robot_yaw) + cos(robot_yaw)*map(2,:) + robot_y;
     scatter(map(1, :), map(2, :))
-
-=======
-    scatter(map(1, :), map(2, :))
->>>>>>> 69bc68754f4fffb6b549e78098c2cef14a13e45b
 
     % plot the robot
     scatter(robot_x, robot_y, 'red');
-<<<<<<< HEAD
-    % plot([robot_x, xprime], [robot_y, yprime], 'red');
-
-=======
     plot([robot_x, xprime], [robot_y, yprime], 'red');
-    
+
     % plot path
     plot(path(:, 1), path(:, 2))
-    
->>>>>>> 69bc68754f4fffb6b549e78098c2cef14a13e45b
+
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
     ShowLaserScan(scan, [robot_x, robot_y, robot_yaw]');
     axis([-SQUARE_SIZE SQUARE_SIZE -SQUARE_SIZE SQUARE_SIZE])
     axis ij
     axis square
-    hold off;           
-    
+    hold off;
+
     subplot(2, 2, 2);
     imshow(image);
     title(num2str(iter));
