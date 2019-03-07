@@ -9,7 +9,7 @@
 % Add MRG helper functions
 % addpath('mrg'); % COMMENTED OUT
 
-MODE = 0; % 0 for real, 1 for replay, 2 for fake data
+MODE = 1; % 0 for real, 1 for replay, 2 for fake data
 ITERS = intmax;
 husky_id = 2; % Modify for your Husky
 
@@ -123,10 +123,7 @@ for s = 1:ITERS
         % SendSpeedCommand(velocity, angle, husky_config.control_channel);
     end
     
-    
-
     plot_state(x(1:3), map, poles, image.left.rgb, s, scan, path, goal_pose);
->>>>>>> 01b00275520ae483525cab436fba814db8261121
     %figure;
     %subplot(2, 2, 3);
     %show(prm);
