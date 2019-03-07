@@ -68,7 +68,7 @@ for s = 1:ITERS
     %disp(poles);
 
     G_last = BuildSE2Transform([0, 0, 0]);
-
+    
     for idx = 1:ssize
         if od(idx).source_timestamp <= scan.timestamp
             G_last_current = BuildSE2Transform([od(idx).x,od(idx).y, od(idx).yaw]);
@@ -79,8 +79,6 @@ for s = 1:ITERS
     u = SE2ToComponents(G_t1_t2)';
 
     G_last_global = G_last_global  * G_t1_t2;
-
-
     [x, P] = SLAMUpdate(u, poles, x, P);
 
     map = reshape(x(4:end), 2, []);
@@ -100,12 +98,16 @@ for s = 1:ITERS
 
     % Check whether we reached the goal (less than 0.1 distance from its pose).
     if not(goal_reached) && norm(x(1:3) - goal_pose) < 0.1
-      goal_reached = true
+      goal_reached = true;
     end
 
-    if goal_reached
+    if goal_reached && goal_pose ~= [0 0 0]
         previous_goal = goal_pose;
         goal_pose = [0 0 0];
+    else
+        if goal_reached
+            break
+        end
     end
 
     [prm, path] = RoutePlanner(map', x(1:3), goal_pose, previous_goal);
@@ -115,14 +117,16 @@ for s = 1:ITERS
     
     if MODE == 0
         SendSpeedCommand(velocity, angular_velocity, config.control_channel);
+        %fprintf("av=%f lv=%f\n", angular_velocity, linear_velocity);
+        % target_pose = route_planner(map, x(1:3)); % TODO.
+        % velocity, angle = wheel_controller(current_pose, target_pose);
+        % SendSpeedCommand(velocity, angle, husky_config.control_channel);
     end
     
-    %fprintf("av=%f lv=%f\n", angular_velocity, linear_velocity);
-    % target_pose = route_planner(map, x(1:3)); % TODO.
-    % velocity, angle = wheel_controller(current_pose, target_pose);
-    % SendSpeedCommand(velocity, angle, husky_config.control_channel);
+    
 
     plot_state(x(1:3), map, poles, image.left.rgb, s, scan, path, goal_pose);
+>>>>>>> 01b00275520ae483525cab436fba814db8261121
     %figure;
     %subplot(2, 2, 3);
     %show(prm);
