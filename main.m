@@ -1,4 +1,4 @@
-profile on
+%profile on
 
 % Example glue-logic file from which you call your implementation of:
 %  (1) Pole Detector
@@ -17,6 +17,8 @@ ITERS = intmax;
 husky_id = 2; % Modify for your Husky
 goal_seen = false;
 rotate_done = false;
+jFrame = get(handle(gcf), 'JavaFrame');
+jFrame.setMaximized(1);
 
 if MODE == 0
     % Get the channel names and sensor IDs for this Husky
@@ -150,8 +152,11 @@ end
 accumulated_odometry = SE2ToComponents(G_last_global);
 
 function plot_state(robot_pose, map, poles, image, iter, scan, path, goal_pose)
-    SQUARE_SIZE = 10;
     clf();
+    
+    SQUARE_SIZE = 10;
+    
+    
     subplot(1, 2, 1);
 
     robot_x = robot_pose(1);
@@ -163,11 +168,11 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path, goal_pose)
     xprime = robot_x+0.5;
     yprime = k * (xprime) + l;
 
-    hold on;
+    
 
     % plot the slam state
     scatter(map(1, :), map(2, :))
-
+    hold on;
     % plot the robot
     scatter(robot_x, robot_y, 'red');
     plot([robot_x, xprime], [robot_y, yprime], 'red');
@@ -181,12 +186,14 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path, goal_pose)
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
     ShowLaserScan(scan, [robot_x, robot_y, robot_yaw]');
+    hold off;
     axis([-SQUARE_SIZE SQUARE_SIZE -SQUARE_SIZE SQUARE_SIZE])
     axis ij
     axis square
-    hold off;
+    
 
-    subplot(1, 2, 2);
+    subplot(1,2, 2);
     imshow(image);
     title(num2str(iter));
+    
 end
