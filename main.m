@@ -33,7 +33,6 @@ end
 P = eye(3); % initialise covariance matrix
 x = zeros(3, 1); % init the state vector, first three coords are our pose
 
-
 if MODE == 1
     %filename = '2019-03-06-12-10-43.mat';
     filename = '2019-03-06-12-12-27.mat';
@@ -63,12 +62,6 @@ for s = 1:ITERS
     ssize = size(od, 2);
     disp(poles);
     
-    dx = 0;
-    dy = 0;
-    yaw = 0;
-
-    counts = 0;
-    
     G_last = BuildSE2Transform([0, 0, 0]);
     
     for idx = 1:ssize
@@ -80,8 +73,6 @@ for s = 1:ITERS
     end
     G_t1_t2 = G_last;
     u = SE2ToComponents(G_t1_t2)';
-    
-    fprintf("Distance %f | Counts %d\n", overall, counts);
     
     [x, P] = SLAMUpdate(u, poles, x, P);
                        
@@ -123,15 +114,11 @@ function plot_state(robot_pose, map, poles, image, iter, scan)
     hold on;
 
     % plot the slam state
-    %[mx, my] = pol2cart(map(2, :)' + robot_yaw, map(1, :)');
-    %slam_x = map(1, :)*cos(robot_yaw) - sin(robot_yaw)*map(2,:) + robot_x;
-    %slam_y = map(1, :)*sin(robot_yaw) + cos(robot_yaw)*map(2,:) + robot_y;           
     scatter(map(1, :), map(2, :))
-    
 
     % plot the tobot
     scatter(robot_x, robot_y, 'red');
-    % plot([robot_x, xprime], [robot_y, yprime], 'red');
+    plot([robot_x, xprime], [robot_y, yprime], 'red');
     
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
