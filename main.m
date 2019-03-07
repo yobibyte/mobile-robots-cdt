@@ -87,8 +87,8 @@ for s = 1:ITERS
 
     % Check whether we can see the goal, update it (transforming in the global ref system).
     if mod(s, FREQ) == 0
-        [visible, goal_z_x] = GoalFinder(image);  % TODO: decrease frequency of goalfinding check
-        if visible
+        [visible, goal_z_x] = GoalFinder(image);
+        if visible && norm(goal_z_x) > 0.99
           R = [cos(x(3)) -sin(x(3)) 0; sin(x(3)) cos(x(3)) 0; 0 0 1];
           T = [1 0 -x(1); 0 1 -x(2); 0 0 1];
           c_pos = [goal_z_x(1); goal_z_x(2); 1];
