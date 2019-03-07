@@ -1,3 +1,5 @@
+profile on
+
 % Example glue-logic file from which you call your implementation of:
 %  (1) Pole Detector
 %  (2) Target Detector
@@ -9,6 +11,7 @@
 % Add MRG helper functions
 % addpath('mrg'); % COMMENTED OUT
 
+FREQ = 10;
 MODE = 1; % 0 for real, 1 for replay, 2 for fake data
 ITERS = intmax;
 husky_id = 2; % Modify for your Husky
@@ -65,7 +68,6 @@ for s = 1:ITERS
     poles = reshape(cell2mat(poles), 2, []);
 
     ssize = size(od, 2);
-    %disp(poles);
 
     G_last = BuildSE2Transform([0, 0, 0]);
 
@@ -84,7 +86,7 @@ for s = 1:ITERS
     map = reshape(x(4:end), 2, []);
 
     % Check whether we can see the goal, update it (transforming in the global ref system).
-    if false
+    if mod(s, FREQ) == 0
         [visible, goal_z_x] = GoalFinder(image);  % TODO: decrease frequency of goalfinding check
         if visible
           R = [cos(x(3)) -sin(x(3)) 0; sin(x(3)) cos(x(3)) 0; 0 0 1];
@@ -108,9 +110,10 @@ for s = 1:ITERS
         end
     end
 
-    disp(goal_pose)
-    [prm, path] = RoutePlanner(map', x(1:3), goal_pose);
-    path = [path, zeros(size(path,1), 1)] % TODO: add goal yaw
+    if mod(s, FREQ) == 0
+        [prm, path] = RoutePlanner(map', x(1:3), goal_pose);
+        path = [path, zeros(size(path,1), 1)] % TODO: add goal yaw
+    end
 
     [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2,:));
 
