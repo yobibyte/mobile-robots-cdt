@@ -44,7 +44,9 @@ if MODE == 1
 end
 overall = 0;
 
-controller = WheelController
+controller = WheelController;
+
+G_last_global = BuildSE2Transform([0, 0, 0]);
 
 for s = 1:ITERS
     if MODE == 1
@@ -70,12 +72,14 @@ for s = 1:ITERS
     for idx = 1:ssize
         if od(idx).source_timestamp <= scan.timestamp
             G_last_current = BuildSE2Transform([od(idx).x,od(idx).y, od(idx).yaw]);
-            G_current = G_last * G_last_current;
-            G_last = G_current;
+            G_last = G_last * G_last_current;
         end
     end
     G_t1_t2 = G_last;
     u = SE2ToComponents(G_t1_t2)';
+    
+    G_last_global = G_last_global  * G_t1_t2;
+    
     
     [x, P] = SLAMUpdate(u, poles, x, P);
                        
@@ -102,6 +106,7 @@ for s = 1:ITERS
     pause(0.5);
 end
 
+accumulated_odometry = SE2ToComponents(G_last_global);
 
 function plot_state(robot_pose, map, poles, image, iter, scan, path)
     SQUARE_SIZE = 10;
