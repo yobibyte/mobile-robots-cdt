@@ -43,6 +43,9 @@ if MODE == 1
     ITERS = size(scans, 2);
 end
 overall = 0;
+
+controller = WheelController
+
 for s = 1:ITERS
     if MODE == 1
         scan = scans{s};
@@ -86,13 +89,15 @@ for s = 1:ITERS
     
     [prm, target] = RoutePlanner(map', x(1:3), [5 0 0]);
 
+    [distance, angular_velocity, linear_velocity] = controller.update(x(1:3), target);
+    fprintf("av=%f lv=%f\n", angular_velocity, linear_velocity);
     % target_pose = route_planner(map, x(1:3)); % TODO.
     % velocity, angle = wheel_controller(current_pose, target_pose);
     % SendSpeedCommand(velocity, angle, husky_config.control_channel);
 
     plot_state(x(1:3), map, poles, images{s}.left.rgb, s, scan);
-    figure;
-    show(prm);
+    %figure;
+    %show(prm);
     pause(0.5);
 end
 
