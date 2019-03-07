@@ -9,10 +9,9 @@
 % Add MRG helper functions
 % addpath('mrg'); % COMMENTED OUT
 
-MODE = 1; % 0 for real, 1 for replay, 2 for fake data
-ITER = intmax;
+MODE = 0; % 0 for real, 1 for replay, 2 for fake data
+ITERS = intmax;
 husky_id = 2; % Modify for your Husky
-
 
 if MODE == 0
     % Get the channel names and sensor IDs for this Husky
@@ -46,9 +45,9 @@ overall = 0;
 
 controller = WheelController;
 goal_reached = false;
-goal_pose = [5 0 0];
+goal_pose = [2.5 0 0];  %TODO: change to 5 0 0 
 G_last_global = BuildSE2Transform([0, 0, 0]);
-
+previous_goal = goal_pose;
 for s = 1:ITERS
     if MODE == 1
         scan = scans{s};
@@ -57,7 +56,7 @@ for s = 1:ITERS
     else
         mailbox = mexmoos('FETCH');
         scan = GetLaserScans(mailbox, config.laser_channel, true);
-        stereo_images = GetStereoImages(mailbox, config.stereo_channel, true);
+        image = GetStereoImages(mailbox, config.stereo_channel, true);
 
         od = GetWheelOdometry(mailbox, config.wheel_odometry_channel);
     end
@@ -87,13 +86,16 @@ for s = 1:ITERS
     map = reshape(x(4:end), 2, []);
 
     % Check whether we can see the goal, update it (transforming in the global ref system).
-    [visible, goal_z_x] = GoalFinder(image);  % TODO: decrease frequency of goalfinding check
-    if visible
-      R = [cos(x(3)) -sin(x(3)) 0; sin(x(3)) cos(x(3)) 0; 0 0 1];
-      T = [1 0 -x(1); 0 1 -x(2); 0 0 1];
-      c_pos = [goal_z_x(1); goal_z_x(2); 1];
-      new_pos = T * R * c_pos;
-      goal_pose = [new_pos(1)/new_pos(3); new_pos(2)/new_pos(3); 0];
+    if false
+        [visible, goal_z_x] = GoalFinder(image);  % TODO: decrease frequency of goalfinding check
+        if visible
+          R = [cos(x(3)) -sin(x(3)) 0; sin(x(3)) cos(x(3)) 0; 0 0 1];
+          T = [1 0 -x(1); 0 1 -x(2); 0 0 1];
+          c_pos = [goal_z_x(1); goal_z_x(2); 1];
+          new_pos = T * R * c_pos;
+          previous_goal = goal_pose;
+          goal_pose = [new_pos(1)/new_pos(3); new_pos(2)/new_pos(3); 0];
+        end
     end
 
     % Check whether we reached the goal (less than 0.1 distance from its pose).
@@ -102,22 +104,29 @@ for s = 1:ITERS
     end
 
     if goal_reached
+        previous_goal = goal_pose;
         goal_pose = [0 0 0];
     end
 
-    [prm, target] = RoutePlanner(map', x(1:3), goal_pose);
-
-    %[distance, angular_velocity, linear_velocity] = controller.update(x(1:3), target);
+    [prm, path] = RoutePlanner(map', x(1:3), goal_pose, previous_goal);
+    path = [path, zeros(size(path,1), 1)] % TODO: add goal yaw
+    
+    [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2,:));    
+    
+    if MODE == 0
+        SendSpeedCommand(velocity, angular_velocity, config.control_channel);
+    end
+    
     %fprintf("av=%f lv=%f\n", angular_velocity, linear_velocity);
     % target_pose = route_planner(map, x(1:3)); % TODO.
     % velocity, angle = wheel_controller(current_pose, target_pose);
     % SendSpeedCommand(velocity, angle, husky_config.control_channel);
 
-    plot_state(x(1:3), map, poles, images{s}.left.rgb, s, scan, path, goal_pose);
+    plot_state(x(1:3), map, poles, image.left.rgb, s, scan, path, goal_pose);
     %figure;
     %subplot(2, 2, 3);
     %show(prm);
-    pause(0.5);  %TODO: edit this
+    pause(0.01);  %TODO: edit this
 end
 
 accumulated_odometry = SE2ToComponents(G_last_global);
@@ -149,7 +158,7 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path, goal_pose)
     scatter(goal_pose(1), goal_pose(2), 'green', 'x');
 
     % plot path
-    %plot(path(:, 1), path(:, 2))
+    plot(path(:, 1), path(:, 2))
 
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
