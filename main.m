@@ -34,8 +34,8 @@ P = eye(3); % initialise covariance matrix
 x = zeros(3, 1); % init the state vector, first three coords are our pose
 
 if MODE == 1
-    %filename = '2019-03-06-12-10-43.mat';
-    filename = '2019-03-06-12-12-27.mat';
+    %filename = '2019-03-06-12-12-27.mat';
+    filename = '2019-03-06-12-10-43.mat';
     collected_data = load(filename);
     scans = collected_data.scans;
     odometries = collected_data.odometries;
@@ -66,7 +66,7 @@ for s = 1:ITERS
     poles = reshape(cell2mat(poles), 2, []);
 
     ssize = size(od, 2);
-    disp(poles);
+    %disp(poles);
 
     G_last = BuildSE2Transform([0, 0, 0]);
 
@@ -87,18 +87,18 @@ for s = 1:ITERS
     map = reshape(x(4:end), 2, []);
 
     % Check whether we can see the goal, update it (transforming in the global ref system).
-    [visible, goal_z_x] = GoalFinder(images{i});
+    [visible, goal_z_x] = GoalFinder(image);  % TODO: decrease frequency of goalfinding check
     if visible
       R = [cos(x(3)) -sin(x(3)) 0; sin(x(3)) cos(x(3)) 0; 0 0 1];
       T = [1 0 -x(1); 0 1 -x(2); 0 0 1];
-      c_pos = [goal_z_x(2); goal_z_x(1); 1];
+      c_pos = [goal_z_x(1); goal_z_x(2); 1];
       new_pos = T * R * c_pos;
-      goal_pose = x(1:3) + [new_pos(1)/new_pos(3), new_pos(2)/new_pos(3), 0];
+      goal_pose = [new_pos(1)/new_pos(3); new_pos(2)/new_pos(3); 0];
     end
 
     % Check whether we reached the goal (less than 0.1 distance from its pose).
     if not(goal_reached) && norm(x(1:3) - goal_pose) < 0.1
-      goal_reached = true;
+      goal_reached = true
     end
 
     if goal_reached
@@ -108,24 +108,24 @@ for s = 1:ITERS
     [prm, target] = RoutePlanner(map', x(1:3), goal_pose);
 
     %[distance, angular_velocity, linear_velocity] = controller.update(x(1:3), target);
-    fprintf("av=%f lv=%f\n", angular_velocity, linear_velocity);
+    %fprintf("av=%f lv=%f\n", angular_velocity, linear_velocity);
     % target_pose = route_planner(map, x(1:3)); % TODO.
     % velocity, angle = wheel_controller(current_pose, target_pose);
     % SendSpeedCommand(velocity, angle, husky_config.control_channel);
 
-    plot_state(x(1:3), map, poles, images{s}.left.rgb, s, scan, path);
+    plot_state(x(1:3), map, poles, images{s}.left.rgb, s, scan, path, goal_pose);
     %figure;
     %subplot(2, 2, 3);
     %show(prm);
-    pause(0.5);
+    pause(0.5);  %TODO: edit this
 end
 
 accumulated_odometry = SE2ToComponents(G_last_global);
 
-function plot_state(robot_pose, map, poles, image, iter, scan, path)
+function plot_state(robot_pose, map, poles, image, iter, scan, path, goal_pose)
     SQUARE_SIZE = 10;
     clf();
-    subplot(2, 2, 1);
+    subplot(1, 2, 1);
 
     robot_x = robot_pose(1);
     robot_y = robot_pose(2);
@@ -145,8 +145,11 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path)
     scatter(robot_x, robot_y, 'red');
     plot([robot_x, xprime], [robot_y, yprime], 'red');
 
+    % plot the goal
+    scatter(goal_pose(1), goal_pose(2), 'green', 'x');
+
     % plot path
-    plot(path(:, 1), path(:, 2))
+    %plot(path(:, 1), path(:, 2))
 
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
@@ -156,7 +159,7 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path)
     axis square
     hold off;
 
-    subplot(2, 2, 2);
+    subplot(1, 2, 2);
     imshow(image);
     title(num2str(iter));
 end
