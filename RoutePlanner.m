@@ -1,6 +1,6 @@
 % TODO: route planner, given the map and pose, output target pose
 
-function [prm, target_pose] = RoutePlanner(poles, current_pose, target)
+function [prm, path] = RoutePlanner(poles, current_pose, target)
   
   data = [[current_pose(1), current_pose(2)]; poles; [target(1), target(2)]];
   min_ = min(data);
@@ -26,5 +26,5 @@ function [prm, target_pose] = RoutePlanner(poles, current_pose, target)
 
   %costmap = vehicleCostmap(map);
   %plot(costmap)
-  target_pose = path(2, :) + min_;  
+  path = path + min_;
 end
