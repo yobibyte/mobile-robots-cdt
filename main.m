@@ -44,8 +44,7 @@ if MODE == 1
     ITERS = size(scans, 2);
 end
 overall = 0;
-prev_scan_timestamp = inf;
-for s = 1:ITERS    
+for s = 1:ITERS
     if MODE == 1
         scan = scans{s};
         od = odometries{s};
@@ -64,11 +63,8 @@ for s = 1:ITERS
     ssize = size(od, 2);
     disp(poles);
     
-    
-    %robot_x = x(1);
     dx = 0;
     dy = 0;
-    %robot_y = x(2);
     yaw = 0;
 
     counts = 0;
@@ -80,33 +76,12 @@ for s = 1:ITERS
             G_last_current = BuildSE2Transform([od(idx).x,od(idx).y, od(idx).yaw]);
             G_current = G_last * G_last_current;
             G_last = G_current;
-%             alpha = od(idx).yaw;
-%             dx = dx*cos(alpha) - sin(alpha)*dy + od(idx).x;
-%             dy = dx*sin(alpha) + cos(alpha)*dy + od(idx).y;
-%             
-%             overall = overall + sqrt(od(idx).x^2+od(idx).y^2);
-%             yaw = yaw + alpha;
-%             counts = counts + 1;
-            %yaw = AngleWrap(yaw);
         end
     end
     G_t1_t2 = G_last;
-%     G_t2_t1 = inv(G_last);
     u = SE2ToComponents(G_t1_t2)';
     
-    prev_scan_timestamp = scan.timestamp;
-    %x1c = robot_x*cos(x(3)) + sin(x(3))*robot_y;
-    %y1c = -robot_x*sin(x(3)) + cos(x(3))*robot_y;
-    
-    %dx = x1c - x(1);
-    %dy = y1c - x(2);
-    %dx = robot_x;
-    %dy = robot_y;
-%     dyaw = -yaw;
-    
     fprintf("Distance %f | Counts %d\n", overall, counts);
-    
-%     u = [dx; dy; dyaw];
     
     [x, P] = SLAMUpdate(u, poles, x, P);
                        
@@ -117,13 +92,16 @@ for s = 1:ITERS
     if goal_reached
         break;
     end
+    
+    [prm, target] = RoutePlanner(map', x(1:3), [5 0 0]);
 
     % target_pose = route_planner(map, x(1:3)); % TODO.
     % velocity, angle = wheel_controller(current_pose, target_pose);
     % SendSpeedCommand(velocity, angle, husky_config.control_channel);
 
     plot_state(x(1:3), map, poles, images{s}.left.rgb, s, scan);
-
+    figure;
+    show(prm);
     pause(0.5);
 end
 
