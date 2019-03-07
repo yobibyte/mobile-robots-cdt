@@ -1,3 +1,5 @@
+profile on
+
 % Example glue-logic file from which you call your implementation of:
 %  (1) Pole Detector
 %  (2) Target Detector
@@ -9,7 +11,8 @@
 % Add MRG helper functions
 % addpath('mrg'); % COMMENTED OUT
 
-MODE = 0; % 0 for real, 1 for replay, 2 for fake data
+FREQ = 10;
+MODE = 1; % 0 for real, 1 for replay, 2 for fake data
 ITERS = intmax;
 husky_id = 2; % Modify for your Husky
 
@@ -45,9 +48,9 @@ overall = 0;
 
 controller = WheelController;
 goal_reached = false;
-goal_pose = [2.5 0 0];  %TODO: change to 5 0 0 
+goal_pose = [5 0 0];
 G_last_global = BuildSE2Transform([0, 0, 0]);
-previous_goal = goal_pose;
+
 for s = 1:ITERS
     if MODE == 1
         scan = scans{s};
@@ -65,10 +68,9 @@ for s = 1:ITERS
     poles = reshape(cell2mat(poles), 2, []);
 
     ssize = size(od, 2);
-    %disp(poles);
 
     G_last = BuildSE2Transform([0, 0, 0]);
-    
+
     for idx = 1:ssize
         if od(idx).source_timestamp <= scan.timestamp
             G_last_current = BuildSE2Transform([od(idx).x,od(idx).y, od(idx).yaw]);
@@ -84,14 +86,13 @@ for s = 1:ITERS
     map = reshape(x(4:end), 2, []);
 
     % Check whether we can see the goal, update it (transforming in the global ref system).
-    if false
+    if mod(s, FREQ) == 0
         [visible, goal_z_x] = GoalFinder(image);  % TODO: decrease frequency of goalfinding check
         if visible
           R = [cos(x(3)) -sin(x(3)) 0; sin(x(3)) cos(x(3)) 0; 0 0 1];
           T = [1 0 -x(1); 0 1 -x(2); 0 0 1];
           c_pos = [goal_z_x(1); goal_z_x(2); 1];
           new_pos = T * R * c_pos;
-          previous_goal = goal_pose;
           goal_pose = [new_pos(1)/new_pos(3); new_pos(2)/new_pos(3); 0];
         end
     end
@@ -102,7 +103,6 @@ for s = 1:ITERS
     end
 
     if goal_reached && goal_pose ~= [0 0 0]
-        previous_goal = goal_pose;
         goal_pose = [0 0 0];
     else
         if goal_reached
@@ -110,11 +110,13 @@ for s = 1:ITERS
         end
     end
 
-    [prm, path] = RoutePlanner(map', x(1:3), goal_pose, previous_goal);
-    path = [path, zeros(size(path,1), 1)] % TODO: add goal yaw
-    
-    [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2,:));    
-    
+    if mod(s, FREQ) == 0
+        [prm, path] = RoutePlanner(map', x(1:3), goal_pose);
+        path = [path, zeros(size(path,1), 1)] % TODO: add goal yaw
+    end
+
+    [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2,:));
+
     if MODE == 0
         SendSpeedCommand(velocity, angular_velocity, config.control_channel);
         %fprintf("av=%f lv=%f\n", angular_velocity, linear_velocity);
@@ -122,11 +124,8 @@ for s = 1:ITERS
         % velocity, angle = wheel_controller(current_pose, target_pose);
         % SendSpeedCommand(velocity, angle, husky_config.control_channel);
     end
-    
-    
 
     plot_state(x(1:3), map, poles, image.left.rgb, s, scan, path, goal_pose);
->>>>>>> 01b00275520ae483525cab436fba814db8261121
     %figure;
     %subplot(2, 2, 3);
     %show(prm);
