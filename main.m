@@ -87,8 +87,8 @@ for s = 1:ITERS
 
     % Check whether we can see the goal, update it (transforming in the global ref system).
     if mod(s, FREQ) == 0
-        [visible, goal_z_x] = GoalFinder(image);  % TODO: decrease frequency of goalfinding check
-        if visible
+        [visible, goal_z_x] = GoalFinder(image);
+        if visible && norm(goal_z_x) > 0.99
           R = [cos(x(3)) -sin(x(3)) 0; sin(x(3)) cos(x(3)) 0; 0 0 1];
           T = [1 0 -x(1); 0 1 -x(2); 0 0 1];
           c_pos = [goal_z_x(1); goal_z_x(2); 1];
@@ -111,11 +111,16 @@ for s = 1:ITERS
     end
 
     if mod(s, FREQ) == 0
+      try
         [prm, path] = RoutePlanner(map', x(1:3), goal_pose);
         path = [path, zeros(size(path,1), 1)] % TODO: add goal yaw
+      catch
+        rotation_pose = [x(1:2) deg2rad(45)];
+        path = [x(1:3); rotation_pose];
+      end
     end
-
     [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2,:));
+
 
     if MODE == 0
         SendSpeedCommand(velocity, angular_velocity, config.control_channel);
