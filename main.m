@@ -46,6 +46,8 @@ end
 overall = 0;
 
 controller = WheelController
+goal_reached = false;
+goal_pose = [5 0 0];
 
 for s = 1:ITERS
     if MODE == 1
@@ -59,21 +61,21 @@ for s = 1:ITERS
 
         od = GetWheelOdometry(mailbox, config.wheel_odometry_channel);
     end
-    
-    poles = PoleDetector(scan, 800); 
+
+    poles = PoleDetector(scan, 800);
     poles = reshape(cell2mat(poles), 2, []);
-    
+
     ssize = size(od, 2);
     disp(poles);
-    
+
     dx = 0;
     dy = 0;
     yaw = 0;
 
     counts = 0;
-    
+
     G_last = BuildSE2Transform([0, 0, 0]);
-    
+
     for idx = 1:ssize
         if od(idx).source_timestamp <= scan.timestamp
             G_last_current = BuildSE2Transform([od(idx).x,od(idx).y, od(idx).yaw]);
@@ -83,20 +85,33 @@ for s = 1:ITERS
     end
     G_t1_t2 = G_last;
     u = SE2ToComponents(G_t1_t2)';
-    
+
     fprintf("Distance %f | Counts %d\n", overall, counts);
-    
+
     [x, P] = SLAMUpdate(u, poles, x, P);
-                       
+
     map = reshape(x(4:end), 2, []);
-    
-    goal_reached = false;
-    % goal_reached = ...; % TODO goal reached check
-    if goal_reached
-        break;
+
+    % Check whether we can see the goal, update it (transforming in the global ref system).
+    [visible, goal_z_x] = GoalFinder(images{i});
+    if visible
+      R = [cos(x(3)) -sin(x(3)) 0; sin(x(3)) cos(x(3)) 0; 0 0 1];
+      T = [1 0 -x(1); 0 1 -x(2); 0 0 1];
+      c_pos = [goal_z_x(2); goal_z_x(1); 1];
+      new_pos = T * R * c_pos;
+      goal_pose = x(1:3) + [new_pos(1)/new_pos(3), new_pos(2)/new_pos(3), 0];
     end
-    
-    [prm, target] = RoutePlanner(map', x(1:3), [5 0 0]);
+
+    % Check whether we reached the goal (less than 0.1 distance from its pose).
+    if not(goal_reached) && norm(x(1:3) - goal_pose) < 0.1
+      goal_reached = true;
+    end
+
+    if goal_reached
+        goal_pose = [0 0 0];
+    end
+
+    [prm, target] = RoutePlanner(map', x(1:3), goal_pose);
 
     [distance, angular_velocity, linear_velocity] = controller.update(x(1:3), target);
     fprintf("av=%f lv=%f\n", angular_velocity, linear_velocity);
@@ -130,14 +145,14 @@ function plot_state(robot_pose, map, poles, image, iter, scan)
     % plot the slam state
     %[mx, my] = pol2cart(map(2, :)' + robot_yaw, map(1, :)');
     %slam_x = map(1, :)*cos(robot_yaw) - sin(robot_yaw)*map(2,:) + robot_x;
-    %slam_y = map(1, :)*sin(robot_yaw) + cos(robot_yaw)*map(2,:) + robot_y;           
+    %slam_y = map(1, :)*sin(robot_yaw) + cos(robot_yaw)*map(2,:) + robot_y;
     scatter(map(1, :), map(2, :))
-    
+
 
     % plot the tobot
     scatter(robot_x, robot_y, 'red');
     % plot([robot_x, xprime], [robot_y, yprime], 'red');
-    
+
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
     ShowLaserScan(scan, [robot_x, robot_y, robot_yaw]');
