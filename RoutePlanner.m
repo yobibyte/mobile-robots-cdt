@@ -2,6 +2,8 @@
 
 function [prm, path] = RoutePlanner(poles, current_pose, target)
 
+  rng(42)
+
   data = [[current_pose(1), current_pose(2)]; poles; [target(1), target(2)]];
   min_ = min(data)-[1, 1];
   max_ = max(data)+[1, 1];

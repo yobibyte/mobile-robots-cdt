@@ -109,10 +109,16 @@ for s = 1:ITERS
     end
 
     disp(goal_pose)
-    [prm, path] = RoutePlanner(map', x(1:3), goal_pose);
-    path = [path, zeros(size(path,1), 1)] % TODO: add goal yaw
-
+    try
+      [prm, path] = RoutePlanner(map', x(1:3), goal_pose);
+      path = [path, zeros(size(path,1), 1)] % TODO: add goal yaw
+    catch
+      rotation_pose = [x(1:2) deg2rad(45)];
+      path = [x(1:3); rotation_pose];
+    end
+    
     [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2,:));
+
 
     if MODE == 0
         SendSpeedCommand(velocity, angular_velocity, config.control_channel);
