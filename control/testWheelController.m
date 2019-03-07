@@ -14,8 +14,8 @@ mexmoos('REGISTER', config.wheel_odometry_channel, 0.0);
 pause(3); % Give mexmoos a chance to connect (important!)
 SendSpeedCommand(0, 0, config.control_channel)
 
-s = [0 0 deg2rad(0)];
-e = [3 2 deg2rad(180)];
+s = [0 0 deg2rad(-45)];
+e = [3 3 deg2rad(45)];
 a = s
 controller = WheelController
 SendSpeedCommand(0, 0, config.control_channel);
@@ -24,6 +24,7 @@ cla
 hold on
 disp(a);
 scatter(e(1), e(2), 'x');
+axis([-5 5 -5 5])
 while true
     
     %PlotPose(a);

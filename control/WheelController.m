@@ -11,11 +11,16 @@ classdef WheelController
           theta = atan2(target_pose(2)-current_pose(2), target_pose(1)-current_pose(1));
           linear_velocity = [0 0];
           velocity = 0;
-          angular_velocity = obj.a_pid.update(current_pose(3), theta);              
-          velocity = -obj.v_pid.update(distance, 0);
+          angular_velocity = obj.a_pid.update(current_pose(3), theta);
+          if rad2deg(abs(current_pose(3)-theta)) > 30
+              velocity = 0
+          else
+              velocity = -obj.v_pid.update(distance, 0);
+          end
+          
           linear_velocity = [cos(theta) sin(theta)]*velocity;          
           
-          if distance < 0.04              
+          if distance < 0.08             
               % rotate in place
               angular_velocity = obj.a_pid.update(current_pose(3), target_pose(3));              
               velocity = 0;
