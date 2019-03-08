@@ -12,7 +12,7 @@
 % addpath('mrg'); % COMMENTED OUT
 
 FREQ = 10;
-MODE = 1; % 0 for real, 1 for replay, 2 for fake data
+MODE = 0; % 0 for real, 1 for replay, 2 for fake data
 ITERS = intmax;
 husky_id = 2; % Modify for your Husky
 goal_seen = false;
@@ -41,7 +41,7 @@ x = zeros(3, 1); % init the state vector, first three coords are our pose
 
 if MODE == 1
     %filename = '2019-03-06-12-12-27.mat';
-    filename = '2019-03-06-12-10-43.mat';
+    filename = '2019-03-08-10-30-42.mat';
     collected_data = load(filename);
     scans = collected_data.scans;
     odometries = collected_data.odometries;
@@ -52,9 +52,9 @@ overall = 0;
 
 controller = WheelController;
 goal_reached = false;
-goal_pose = [5.25 0 0];
+goal_pose = [4 0 0];
 G_last_global = BuildSE2Transform([0, 0, 0]);
-
+n_poles = 0;
 for s = 1:ITERS
     if MODE == 1
         scan = scans{s};
@@ -67,9 +67,13 @@ for s = 1:ITERS
 
         od = GetWheelOdometry(mailbox, config.wheel_odometry_channel);
     end
-
-    poles = PoleDetector(scan, 800);
-    poles = reshape(cell2mat(poles), 2, []);
+    
+    try
+        poles = PoleDetector(scan, 800);
+        poles = reshape(cell2mat(poles), 2, []);
+    catch
+        poles = [];
+    end
 
     ssize = size(od, 2);
 
@@ -90,8 +94,8 @@ for s = 1:ITERS
     map = reshape(x(4:end), 2, []);
 
     % Check whether we can see the goal, update it (transforming in the global ref system).
-    if mod(s, FREQ) == 0
-        [visible, goal_z_x] = GoalFinder(image);
+    if mod(s-1, FREQ) == 0       % false 
+        [visible, goal_z_x] = GoalFinder(image)
         if visible && norm(goal_z_x) > 0.99
           R = [cos(x(3)) -sin(x(3)) 0; sin(x(3)) cos(x(3)) 0; 0 0 1];
           T = [1 0 -x(1); 0 1 -x(2); 0 0 1];
@@ -108,8 +112,8 @@ for s = 1:ITERS
     end
 
     if goal_reached && not(goal_seen) && not(rotate_done)
-      rotate_done = true;
-      [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), [x(1:2) deg2rad(360)]);
+      rotate_done = true
+      [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), [x(1:2)' deg2rad(360)]);
       SendSpeedCommand(velocity, angular_velocity, config.control_channel);
       continue
     end
@@ -122,12 +126,26 @@ for s = 1:ITERS
         end
     end
 
-    if mod(s-1, FREQ) == 0
-      try
+    if size(map, 2) > n_poles
+        disp("running route planner");
+        n_poles = size(map, 1)
         [prm, path] = RoutePlanner(map', x(1:3), goal_pose);
-        path = [path, zeros(size(path,1), 1)] % TODO: add goal yaw
+        i = 0
+        while size(path, 1) > 1 && pdist([x(1:2)'; path(2,:)]) < 0.6
+            path = path(2:end,:);
+            i = i + 1
+            if i == 10
+                break
+            end
+        end
+        path = [path, zeros(size(path,1), 1)]; % TODO: add goal yaw      
+      try
+          
+        % path
+        
       catch
-        rotation_pose = [x(1:2) deg2rad(45)];
+        disp('Exception caught on routeplanner')
+        rotation_pose = [x(1:2)' deg2rad(45)];
         path = [x(1:3); rotation_pose];
       end
     end
@@ -136,6 +154,7 @@ for s = 1:ITERS
     [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2,:));
     counter = 1;
     while distance < 0.1 && counter < size(path, 1)
+      disp('ciao')
       [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2 + counter,:));
       counter = counter + 1;
     end
@@ -151,8 +170,8 @@ for s = 1:ITERS
 
     plot_state(x(1:3), map, poles, image.left.rgb, s, scan, path, goal_pose);
     %figure;
-    %subplot(2, 2, 3);
-    %show(prm);
+    subplot(2, 2, 3);
+    show(prm);
     pause(0.01);  %TODO: edit this
 end
 
@@ -164,7 +183,7 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path, goal_pose)
     SQUARE_SIZE = 10;
     
     
-    subplot(1, 2, 1);
+    subplot(2, 2, 1);
 
     robot_x = robot_pose(1);
     robot_y = robot_pose(2);
@@ -199,7 +218,7 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path, goal_pose)
     axis square
     
 
-    subplot(1,2, 2);
+    subplot(2, 2, 2);
     imshow(image);
     title(num2str(iter));
     

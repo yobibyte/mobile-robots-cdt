@@ -1,6 +1,6 @@
 classdef WheelController
    properties
-      a_pid = PID(0.8, 0, 0.0)
+      a_pid = PID(1.8, 0, 0.0)
       v_pid = PID(0.5, 0, 0.0)
       lx_pid = PID(0.06, 0, 0.0)
       ly_pid = PID(0.06, 0, 0.0)
@@ -12,7 +12,7 @@ classdef WheelController
           linear_velocity = [0 0];
           velocity = 0;
           angular_velocity = obj.a_pid.update(current_pose(3), theta);
-          if rad2deg(abs(current_pose(3)-theta)) > 30
+          if rad2deg(abs(current_pose(3)-theta)) > 90
               velocity = 0
           else
               velocity = -obj.v_pid.update(distance, 0);

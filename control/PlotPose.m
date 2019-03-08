@@ -6,6 +6,6 @@ theta = pose(3);
 scatter([pose(1)], [pose(2)]);
 
 ends = start + [cos(theta) sin(theta)];
-quiver(start(:,1), start(:,2), 5*cos(theta), 5*sin(theta));
+quiver(start(:,1), start(:,2), 1*cos(theta), 1*sin(theta));
 
 end
