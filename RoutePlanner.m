@@ -23,8 +23,8 @@ function [prm, path] = RoutePlanner(poles, current_pose, target)
   inflate(map, 0.5);
   prm = robotics.PRM;
   prm.Map = map;
-  prm.NumNodes = 150;
-  prm.ConnectionDistance = 15;
+  prm.NumNodes = 70;
+  prm.ConnectionDistance = 5;
   %if (getOccupancy(map, [target(1), target(2)]))
   try
     path = findpath(prm, [current_pose(1), current_pose(2)], [target(1), target(2)]);

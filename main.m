@@ -1,4 +1,4 @@
-profile on
+%profile on
 
 % Example glue-logic file from which you call your implementation of:
 %  (1) Pole Detector
@@ -15,6 +15,10 @@ FREQ = 10;
 MODE = 1; % 0 for real, 1 for replay, 2 for fake data
 ITERS = intmax;
 husky_id = 2; % Modify for your Husky
+goal_seen = false;
+rotate_done = false;
+jFrame = get(handle(gcf), 'JavaFrame');
+jFrame.setMaximized(1);
 
 if MODE == 0
     % Get the channel names and sensor IDs for this Husky
@@ -48,7 +52,7 @@ overall = 0;
 
 controller = WheelController;
 goal_reached = false;
-goal_pose = [5 0 0];
+goal_pose = [5.25 0 0];
 G_last_global = BuildSE2Transform([0, 0, 0]);
 
 for s = 1:ITERS
@@ -94,12 +98,20 @@ for s = 1:ITERS
           c_pos = [goal_z_x(1); goal_z_x(2); 1];
           new_pos = T * R * c_pos;
           goal_pose = [new_pos(1)/new_pos(3); new_pos(2)/new_pos(3); 0];
+          goal_seen = true;
         end
     end
 
     % Check whether we reached the goal (less than 0.1 distance from its pose).
     if not(goal_reached) && norm(x(1:3) - goal_pose) < 0.1
       goal_reached = true;
+    end
+
+    if goal_reached && not(goal_seen) && not(rotate_done)
+      rotate_done = true;
+      [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), [x(1:2) deg2rad(360)]);
+      SendSpeedCommand(velocity, angular_velocity, config.control_channel);
+      continue
     end
 
     if goal_reached && goal_pose ~= [0 0 0]
@@ -110,7 +122,7 @@ for s = 1:ITERS
         end
     end
 
-    if mod(s, FREQ) == 0
+    if mod(s-1, FREQ) == 0
       try
         [prm, path] = RoutePlanner(map', x(1:3), goal_pose);
         path = [path, zeros(size(path,1), 1)] % TODO: add goal yaw
@@ -119,7 +131,14 @@ for s = 1:ITERS
         path = [x(1:3); rotation_pose];
       end
     end
+
+    % Move along the path.
     [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2,:));
+    counter = 1;
+    while distance < 0.1 && counter < size(path, 1)
+      [distance, angular_velocity, linear_velocity, velocity] = controller.update(x(1:3), path(2 + counter,:));
+      counter = counter + 1;
+    end
 
 
     if MODE == 0
@@ -140,8 +159,11 @@ end
 accumulated_odometry = SE2ToComponents(G_last_global);
 
 function plot_state(robot_pose, map, poles, image, iter, scan, path, goal_pose)
-    SQUARE_SIZE = 10;
     clf();
+    
+    SQUARE_SIZE = 10;
+    
+    
     subplot(1, 2, 1);
 
     robot_x = robot_pose(1);
@@ -153,11 +175,11 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path, goal_pose)
     xprime = robot_x+0.5;
     yprime = k * (xprime) + l;
 
-    hold on;
+    
 
     % plot the slam state
     scatter(map(1, :), map(2, :))
-
+    hold on;
     % plot the robot
     scatter(robot_x, robot_y, 'red');
     plot([robot_x, xprime], [robot_y, yprime], 'red');
@@ -171,12 +193,14 @@ function plot_state(robot_pose, map, poles, image, iter, scan, path, goal_pose)
     [px, py] = pol2cart(poles(2, :)' + robot_yaw, poles(1, :)');
     scatter(px + robot_x, py + robot_y, 'magenta');
     ShowLaserScan(scan, [robot_x, robot_y, robot_yaw]');
+    hold off;
     axis([-SQUARE_SIZE SQUARE_SIZE -SQUARE_SIZE SQUARE_SIZE])
     axis ij
     axis square
-    hold off;
+    
 
-    subplot(1, 2, 2);
+    subplot(1,2, 2);
     imshow(image);
     title(num2str(iter));
+    
 end
